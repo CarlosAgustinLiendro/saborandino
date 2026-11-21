@@ -1,0 +1,305 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Inicio · Sistema de Acopio y Liquidaciones{% endblock %}
+
+{% block content %}
+<!-- Hero Banner Regional -->
+<div class="hero-banner">
+  <div class="hero-banner-content">
+    <div>
+      <span class="hero-saludo-antetitulo">Espacio de Trabajo · Sabor Andino S.R.L.</span>
+      <h1 class="hero-saludo-titulo">¡Hola, {{ user.first_name|default:user.username }}!</h1>
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+      <a href="{% url 'acopio:recepcion_crear' %}" class="btn btn-principal" style="box-shadow:0 4px 12px rgba(62,101,49,0.3);">
+        Nueva Recepción (Pesaje)
+      </a>
+      <a href="{% url 'acopio:anticipo_crear' %}" class="btn btn-secundario" style="background:var(--fondo-superficie);">
+        Registrar Anticipo
+      </a>
+      <a href="{% url 'acopio:reportes' %}" class="btn btn-secundario" style="background:var(--fondo-superficie);">
+        Consultar Reportes
+      </a>
+    </div>
+  </div>
+  <img class="hero-landscape-divider" src="{% static 'img/fondos/fondo_home.png' %}" alt="Paisaje de los Valles Calchaquíes">
+</div>
+
+<!-- Resumen de Métricas KPI -->
+<div class="kpi-grid">
+  <a href="{% url 'acopio:recepciones_lista' %}" class="kpi-card" title="Ver recepciones de acopio">
+    <div class="kpi-icono-caja">
+      <img src="{% static 'img/iconos/Icono_depositos.png' %}" alt="Icono Kilos">
+    </div>
+    <div class="kpi-datos">
+      <span class="kpi-etiqueta">Kilos netos acopiados</span>
+      <span class="kpi-valor">{{ kilos_acopiados|floatformat:1 }} kg</span>
+    </div>
+  </a>
+
+  <a href="{% url 'acopio:anticipos_lista' %}" class="kpi-card" title="Ver anticipos registrados">
+    <div class="kpi-icono-caja">
+      <img src="{% static 'img/iconos/Icono_Entregas2.png' %}" alt="Icono Anticipos">
+    </div>
+    <div class="kpi-datos">
+      <span class="kpi-etiqueta">Anticipos en efectivo</span>
+      <span class="kpi-valor">${{ total_anticipos|floatformat:0 }}</span>
+    </div>
+  </a>
+
+  <a href="{% url 'acopio:liquidaciones_lista' %}" class="kpi-card" title="Ver liquidaciones emitidas">
+    <div class="kpi-icono-caja">
+      <img src="{% static 'img/iconos/Icono_pedidos.png' %}" alt="Icono Liquidaciones">
+    </div>
+    <div class="kpi-datos">
+      <span class="kpi-etiqueta">Liquidaciones emitidas</span>
+      <span class="kpi-valor">{{ liquidaciones_count }}</span>
+    </div>
+  </a>
+
+  <a href="{% url 'acopio:productores_lista' %}" class="kpi-card" title="Ver padrón de productores">
+    <div class="kpi-icono-caja">
+      <img src="{% static 'img/iconos/Icono_proveedores.png' %}" alt="Icono Productores">
+    </div>
+    <div class="kpi-datos">
+      <span class="kpi-etiqueta">Padrón de productores</span>
+      <span class="kpi-valor">{{ productores_count }} asociados</span>
+    </div>
+  </a>
+</div>
+
+<!-- Centro de Gestión: Los 6 Módulos del Sistema según el Informe Técnico (Pág. 11) -->
+<div class="seccion-header">
+  <div>
+    <h2 class="seccion-titulo">Módulos del Sistema</h2>
+  </div>
+</div>
+
+<div class="gestion-grid">
+  <!-- Módulo 1: Recepción y Pesaje (P02) -->
+  <a href="{% url 'acopio:recepciones_lista' %}" class="gestion-card">
+    <div class="gestion-card-top">
+      <div class="gestion-icono-caja">
+        <img src="{% static 'img/iconos/Icono_depositos.png' %}" alt="Recepción">
+      </div>
+      <div class="gestion-card-info">
+        <h3>Módulo de Recepción y Pesaje</h3>
+        <p>Báscula Cachi: pesaje bruto, tara, cálculo automático de kilos netos, humedad, comprobantes correlativos y contingencia offline.</p>
+      </div>
+    </div>
+    <div class="gestion-card-footer">
+      <span class="pill-tag">{{ recepciones_count }} pesajes</span>
+      <span>Acceder al pesaje</span>
+    </div>
+  </a>
+
+  <!-- Módulo 2: Anticipos a Productores (P04) -->
+  <a href="{% url 'acopio:anticipos_lista' %}" class="gestion-card">
+    <div class="gestion-card-top">
+      <div class="gestion-icono-caja">
+        <img src="{% static 'img/iconos/Icono_Entregas2.png' %}" alt="Anticipos">
+      </div>
+      <div class="gestion-card-info">
+        <h3>Módulo de Anticipos</h3>
+        <p>Registro de adelantos en efectivo con validación de importes positivos, autorización de Socio Gerente y control de imputación contable.</p>
+      </div>
+    </div>
+    <div class="gestion-card-footer">
+      <span class="pill-tag" style="background:var(--naranja-suave); color:var(--naranja);">Administración</span>
+      <span>Gestionar anticipos</span>
+    </div>
+  </a>
+
+  <!-- Módulo 3: Liquidaciones a Productores (P04) -->
+  <a href="{% url 'acopio:liquidaciones_lista' %}" class="gestion-card">
+    <div class="gestion-card-top">
+      <div class="gestion-icono-caja">
+        <img src="{% static 'img/iconos/Icono_pedidos.png' %}" alt="Liquidaciones">
+      </div>
+      <div class="gestion-card-info">
+        <h3>Módulo de Liquidaciones</h3>
+        <p>Cálculo de importe bruto, deducción de anticipos sin duplicación, vencimiento a 30 días corridos y comprobante interno no fiscal.</p>
+      </div>
+    </div>
+    <div class="gestion-card-footer">
+      <span class="pill-tag">{{ liquidaciones_count }} emitidas</span>
+      <span>Ver liquidaciones</span>
+    </div>
+  </a>
+
+  <!-- Módulo 4: Precios de Referencia (Socio Gerente) -->
+  <a href="{% url 'acopio:precios_lista' %}" class="gestion-card">
+    <div class="gestion-card-top">
+      <div class="gestion-icono-caja">
+        <img src="{% static 'img/iconos/Icono_productos.png' %}" alt="Precios">
+      </div>
+      <div class="gestion-card-info">
+        <h3>Precios de Referencia</h3>
+        <p>Matriz de precios oficiales por kilogramo y campaña. Su modificación está reservada con exclusividad al Socio Gerente.</p>
+      </div>
+    </div>
+    <div class="gestion-card-footer">
+      <span class="pill-tag">Exclusivo Gerente</span>
+      <span>Consultar matriz</span>
+    </div>
+  </a>
+
+  <!-- Módulo 5: Padrón de Productores -->
+  <a href="{% url 'acopio:productores_lista' %}" class="gestion-card">
+    <div class="gestion-card-top">
+      <div class="gestion-icono-caja">
+        <img src="{% static 'img/iconos/Icono_proveedores.png' %}" alt="Productores">
+      </div>
+      <div class="gestion-card-info">
+        <h3>Padrón de Productores</h3>
+        <p>Identificación de los 47 productores agrícolas de Cachi, Molinos, Seclantás, San Carlos y Cafayate con su ficha integral de saldos.</p>
+      </div>
+    </div>
+    <div class="gestion-card-footer">
+      <span class="pill-tag">{{ productores_count }} productores</span>
+      <span>Ver padrón</span>
+    </div>
+  </a>
+
+  <!-- Módulo 6: Consultas y Reportes con Exportación CSV -->
+  <a href="{% url 'acopio:reportes' %}" class="gestion-card">
+    <div class="gestion-card-top">
+      <div class="gestion-icono-caja">
+        <img src="{% static 'img/iconos/Icono_pedidos.png' %}" alt="Reportes">
+      </div>
+      <div class="gestion-card-info">
+        <h3>Consultas y Reportes</h3>
+        <p>Filtros multi-criterio de comprobantes, anticipos y saldos pendientes, con exportación a planillas CSV compatibles con Excel.</p>
+      </div>
+    </div>
+    <div class="gestion-card-footer">
+      <span class="pill-tag" style="background:#e8f4fd; color:#1976d2;">Exportación CSV</span>
+      <span>Generar reportes</span>
+    </div>
+  </a>
+</div>
+
+<!-- Operaciones Recientes: Recepciones de Acopio (P02) -->
+<div class="seccion-header" style="margin-top:40px;">
+  <div>
+    <h2 class="seccion-titulo">Últimas recepciones de acopio (Centro Cachi)</h2>
+    <p style="color:var(--texto-secundario); margin:4px 0 0 0; font-size:0.92rem;">Comprobantes correlativos oficiales de pesaje en báscula</p>
+  </div>
+  <a href="{% url 'acopio:recepciones_lista' %}" class="btn btn-secundario btn-sm">Ver todas las recepciones &rarr;</a>
+</div>
+
+{% if recepciones_recientes %}
+<div class="tabla-contenedor">
+  <table class="tabla-datos">
+    <thead>
+      <tr>
+        <th>N° Comprobante</th>
+        <th>Fecha</th>
+        <th>Productor</th>
+        <th>Materia Prima</th>
+        <th>Kilos Netos</th>
+        <th>Humedad</th>
+        <th>Precio Ref.</th>
+        <th>Estado</th>
+        <th style="text-align:right;">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in recepciones_recientes %}
+      <tr>
+        <td>
+          <a href="{% url 'acopio:recepcion_detalle' r.pk %}" style="font-weight:700; color:var(--verde-oscuro);">
+            {{ r.numero }}
+          </a>
+          {% if r.rectificado %}
+          <span class="badge-stock bajo" style="margin-left:4px; font-size:0.75rem;" title="Comprobante rectificado">Rectificado</span>
+          {% endif %}
+          {% if r.origen_offline %}
+          <span class="badge-stock" style="margin-left:4px; font-size:0.75rem; background:#fff3e0; color:#e65100;">Offline</span>
+          {% endif %}
+        </td>
+        <td>{{ r.fecha|date:"d/m/Y" }}</td>
+        <td>
+          <a href="{% url 'acopio:productor_detalle' r.productor.pk %}" style="color:inherit; font-weight:600;">
+            {{ r.productor.nombre_completo }}
+          </a>
+        </td>
+        <td><span class="pill-tag">{{ r.tipo_producto.nombre }}</span></td>
+        <td><strong>{{ r.kilos_netos }} kg</strong></td>
+        <td>{{ r.porcentaje_humedad }}%</td>
+        <td>${{ r.precio_referencia }}/kg</td>
+        <td>
+          {% if r.liquidacion %}
+          <span class="pill-tag" style="background:#e8f5e9; color:#2e7d32;">Liquidado</span>
+          {% else %}
+          <span class="pill-tag" style="background:#fff3e0; color:#e65100;">Pendiente</span>
+          {% endif %}
+        </td>
+        <td style="text-align:right;">
+          <a href="{% url 'acopio:recepcion_detalle' r.pk %}" class="btn btn-secundario btn-sm">Ver</a>
+          {% if not r.liquidacion %}
+          <a href="{% url 'acopio:liquidacion_generar' r.pk %}" class="btn btn-principal btn-sm">Liquidar</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div style="background:var(--fondo-superficie); border:1px solid var(--borde); border-radius:var(--radio); padding:32px; text-align:center;">
+  <p style="color:var(--texto-secundario);">No se registran recepciones de acopio en esta campaña.</p>
+  <a href="{% url 'acopio:recepcion_crear' %}" class="btn btn-principal btn-sm" style="margin-top:10px;">+ Registrar primer pesaje</a>
+</div>
+{% endif %}
+
+<!-- Operaciones Recientes: Anticipos en Efectivo (P04) -->
+<div class="seccion-header" style="margin-top:40px;">
+  <div>
+    <h2 class="seccion-titulo">Últimos anticipos a productores (Oficina Salta)</h2>
+    <p style="color:var(--texto-secundario); margin:4px 0 0 0; font-size:0.92rem;">Adelantos en efectivo registrados y autorizados</p>
+  </div>
+  <a href="{% url 'acopio:anticipos_lista' %}" class="btn btn-secundario btn-sm">Ver todos los anticipos &rarr;</a>
+</div>
+
+{% if anticipos_recientes %}
+<div class="tabla-contenedor">
+  <table class="tabla-datos">
+    <thead>
+      <tr>
+        <th>N° Anticipo</th>
+        <th>Fecha</th>
+        <th>Productor</th>
+        <th>Importe</th>
+        <th>Autorizado Por</th>
+        <th>Imputación a Liquidación</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in anticipos_recientes %}
+      <tr>
+        <td><strong>{{ a.numero }}</strong></td>
+        <td>{{ a.fecha|date:"d/m/Y" }}</td>
+        <td>
+          <a href="{% url 'acopio:productor_detalle' a.productor.pk %}" style="color:inherit; font-weight:600;">
+            {{ a.productor.nombre_completo }}
+          </a>
+        </td>
+        <td><strong style="color:var(--verde-principal); font-size:1rem;">${{ a.importe|floatformat:2 }}</strong></td>
+        <td><small style="color:var(--texto-secundario);">{{ a.autorizado_por }}</small></td>
+        <td>
+          {% if a.imputado %}
+          <span class="pill-tag" style="background:#e8f5e9; color:#2e7d32;">Imputado en Liquidación</span>
+          {% else %}
+          <span class="pill-tag" style="background:#fff3e0; color:#e65100;">Pendiente de Imputar</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% endblock %}

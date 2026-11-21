@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Iniciar sesión · {{ organizacion_nombre }}{% endblock %}
+
+{% block content %}
+<div class="auth-pantalla-wrapper">
+  <div class="auth-card">
+    <div class="auth-header-verde">
+      <img class="auth-logo-img" src="{% static 'img/logos/logo_sabores.png' %}" alt="Logo Sabor Andino">
+      <h1>{{ organizacion_nombre }}</h1>
+      <p>Gestión de Acopio y Liquidaciones</p>
+    </div>
+
+    <div class="auth-cuerpo">
+      <div style="text-align:center; margin-bottom:24px;">
+        <h2 style="font-size:1.35rem; font-weight:800; color:var(--texto); margin-bottom:4px;">Iniciar sesión</h2>
+        <p style="font-size:0.9rem; color:var(--texto-secundario); margin:0;">
+          Ingresá con tus credenciales de operador o administrador.
+        </p>
+      </div>
+
+      {% if form.non_field_errors %}
+      <div class="aviso-toast error" style="margin-bottom:20px;">
+        {{ form.non_field_errors }}
+      </div>
+      {% endif %}
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+
+        <!-- Usuario -->
+        <div class="form-grupo">
+          <label class="form-label" for="{{ form.username.id_for_label }}">Nombre de usuario</label>
+          <div class="input-icono-wrapper">
+            <span class="icono-izq">
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/></svg>
+            </span>
+            <input 
+              type="text" 
+              name="username" 
+              id="{{ form.username.id_for_label }}" 
+              class="input-redondeado" 
+              placeholder="Ej. carlos.liendro"
+              value="{{ form.username.value|default:'' }}"
+              required 
+              autofocus
+            >
+          </div>
+          {% if form.username.errors %}<div class="form-error">{{ form.username.errors }}</div>{% endif %}
+        </div>
+
+        <!-- Contraseña con botón de ojo -->
+        <div class="form-grupo">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <label class="form-label" for="{{ form.password.id_for_label }}" style="margin-bottom:0;">Contraseña</label>
+            <a href="{% url 'cuentas:reestablecer' %}" style="font-size:0.85rem; color:var(--verde-principal); text-decoration:none; font-weight:600;">
+              ¿Olvidaste tu contraseña?
+            </a>
+          </div>
+          <div class="input-icono-wrapper auth-password-wrapper">
+            <span class="icono-izq">
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            </span>
+            <input 
+              type="password" 
+              name="password" 
+              id="{{ form.password.id_for_label }}" 
+              class="input-redondeado" 
+              placeholder="Ingrese su contraseña"
+              required
+            >
+            <button 
+              type="button" 
+              class="btn-toggle-eye" 
+              style="position:absolute; right:16px; top:50%; transform:translateY(-50%); background:none; border:none; color:#8C8E8C; cursor:pointer;"
+              onclick="togglePassword('{{ form.password.id_for_label }}', this)" 
+              aria-label="Mostrar contraseña"
+            >
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+            </button>
+          </div>
+          {% if form.password.errors %}<div class="form-error">{{ form.password.errors }}</div>{% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-principal" style="width:100%; margin-top:16px; font-size:1.05rem; padding:13px; border-radius:var(--radio-pill);">
+          Ingresar al sistema
+        </button>
+      </form>
+
+      <div class="auth-footer-links">
+        ¿No tenés una cuenta? <a href="{% url 'cuentas:registro' %}" style="font-weight:700; color:var(--verde-principal);">Crear cuenta</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

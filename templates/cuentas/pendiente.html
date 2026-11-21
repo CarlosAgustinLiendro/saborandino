@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Solicitud enviada · {{ organizacion_nombre }}{% endblock %}
+
+{% block content %}
+<div class="auth-pantalla-wrapper">
+  <div class="auth-card" style="max-width:500px; text-align:center;">
+    <div class="auth-header-verde">
+      <img class="auth-logo-img" src="{% static 'img/logos/logo_sabores.png' %}" alt="Logo Sabor Andino">
+      <h1>Solicitud Recibida</h1>
+      <p>Sabor Andino S.R.L.</p>
+    </div>
+    <div class="auth-cuerpo" style="padding:40px 32px;">
+      <div style="width:72px; height:72px; border-radius:50%; background:var(--verde-suave); display:flex; align-items:center; justify-content:center; margin:0 auto 20px auto; color:var(--verde-principal); font-size:2rem;">
+        ✓
+      </div>
+      <h2 style="font-size:1.5rem; font-weight:800; color:var(--texto); margin-bottom:12px;">¡Cuenta creada con éxito!</h2>
+      <p style="color:var(--texto-secundario); font-size:0.95rem; line-height:1.6; margin-bottom:24px;">
+        Tu solicitud ha sido registrada correctamente y está <strong>pendiente de aprobación</strong> por parte de la administración. Te habilitarán el acceso a la brevedad.
+      </p>
+      <div style="background:var(--fondo-hover); padding:14px; border-radius:var(--radio); font-size:0.88rem; color:var(--texto-secundario); margin-bottom:28px;">
+        No necesitás volver a registrarte. Una vez aprobada tu cuenta, podrás ingresar con tu usuario y contraseña.
+      </div>
+      <a href="{% url 'cuentas:login' %}" class="btn btn-principal" style="width:100%; padding:12px; font-size:1rem;">
+        Volver a Iniciar sesión
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

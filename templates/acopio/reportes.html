@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Módulo de Consultas y Reportes · {{ organizacion_nombre }}{% endblock %}
+
+{% block content %}
+<div class="seccion-header">
+  <div>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+      <a href="{% url 'inicio:home' %}" style="color:var(--texto-secundario); font-size:0.88rem; text-decoration:none;">&larr; Volver al inicio</a>
+      <span style="color:var(--borde);">&bull;</span>
+      <span style="font-size:0.85rem; font-weight:700; color:var(--verde-principal); text-transform:uppercase;">Módulo 6 · Gestión Administrativa</span>
+    </div>
+    <h1 class="seccion-titulo">Consultas y Reportes Consolidados</h1>
+  </div>
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <a href="{% url 'acopio:reportes_exportar_csv' %}?tipo=recepciones&productor={{ filtro_productor }}&campania={{ filtro_campania }}&materia={{ filtro_materia }}&fecha_desde={{ filtro_fecha_desde }}&fecha_hasta={{ filtro_fecha_hasta }}" class="btn btn-secundario" title="Descargar datos en CSV compatible con Excel">
+      Exportar Recepciones CSV
+    </a>
+    <a href="{% url 'acopio:reportes_exportar_csv' %}?tipo=liquidaciones&productor={{ filtro_productor }}&campania={{ filtro_campania }}&materia={{ filtro_materia }}&fecha_desde={{ filtro_fecha_desde }}&fecha_hasta={{ filtro_fecha_hasta }}" class="btn btn-principal" title="Descargar liquidaciones en CSV compatible con Excel">
+      Exportar Liquidaciones CSV
+    </a>
+  </div>
+</div>
+
+<!-- Barra de Filtros Multi-Criterio (Pág. 11 y 14 del informe) -->
+<div class="barra-filtros" style="background:var(--fondo-superficie); border:1px solid var(--borde); border-radius:var(--radio-md); padding:20px; margin-bottom:28px; box-shadow:var(--sombra-sm);">
+  <form method="get" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)) 120px; gap:14px; align-items:end;">
+    <div>
+      <label style="display:block; font-size:0.82rem; font-weight:700; color:var(--texto-secundario); margin-bottom:4px;">PRODUCTOR</label>
+      <select name="productor" class="input-redondeado" style="width:100%;">
+        <option value="">-- Todos los productores --</option>
+        {% for p in productores %}
+        <option value="{{ p.id }}" {% if filtro_productor == p.id|stringformat:"s" %}selected{% endif %}>
+          {{ p.nombre_completo }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div>
+      <label style="display:block; font-size:0.82rem; font-weight:700; color:var(--texto-secundario); margin-bottom:4px;">CAMPAÑA</label>
+      <select name="campania" class="input-redondeado" style="width:100%;">
+        <option value="">-- Todas las campañas --</option>
+        {% for c in campanias %}
+        <option value="{{ c.id }}" {% if filtro_campania == c.id|stringformat:"s" %}selected{% endif %}>
+          {{ c.nombre }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div>
+      <label style="display:block; font-size:0.82rem; font-weight:700; color:var(--texto-secundario); margin-bottom:4px;">MATERIA PRIMA</label>
+      <select name="materia" class="input-redondeado" style="width:100%;">
+        <option value="">-- Todas las materias --</option>
+        {% for m in materias %}
+        <option value="{{ m.id }}" {% if filtro_materia == m.id|stringformat:"s" %}selected{% endif %}>
+          {{ m.nombre }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div>
+      <label style="display:block; font-size:0.82rem; font-weight:700; color:var(--texto-secundario); margin-bottom:4px;">DESDE FECHA</label>
+      <input type="date" name="fecha_desde" value="{{ filtro_fecha_desde }}" class="input-redondeado" style="width:100%;">
+    </div>
+
+    <div>
+      <label style="display:block; font-size:0.82rem; font-weight:700; color:var(--texto-secundario); margin-bottom:4px;">HASTA FECHA</label>
+      <input type="date" name="fecha_hasta" value="{{ filtro_fecha_hasta }}" class="input-redondeado" style="width:100%;">
+    </div>
+
+    <div style="display:flex; gap:8px;">
+      <button type="submit" class="btn btn-principal" style="width:100%; justify-content:center;">
+        Filtrar
+      </button>
+      {% if filtro_productor or filtro_campania or filtro_materia or filtro_fecha_desde or filtro_fecha_hasta %}
+      <a href="{% url 'acopio:reportes' %}" class="btn btn-secundario" title="Limpiar filtros">✕</a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+<!-- Resumen Cuantitativo del Filtro Aplicado -->
+<div class="kpi-grid" style="margin-bottom:32px;">
+  <div class="kpi-card">
+    <div class="kpi-icono-caja">
+      <img src="{% static 'img/iconos/Icono_depositos.png' %}" alt="Kilos">
+    </div>
+    <div class="kpi-datos">
+      <span class="kpi-etiqueta">Kilos netos filtrados</span>
+      <span class="kpi-valor">{{ total_kilos|floatformat:1 }} kg</span>
+    </div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-icono-caja">
+      <img src="{% static 'img/iconos/Icono_Entregas2.png' %}" alt="Anticipos">
+    </div>
+    <div class="kpi-datos">
+      <span class="kpi-etiqueta">Total anticipos en filtro</span>
+      <span class="kpi-valor">${{ total_anticipos|floatformat:0 }}</span>
+    </div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-icono-caja">
+      <img src="{% static 'img/iconos/Icono_pedidos.png' %}" alt="Bruto">
+    </div>
+    <div class="kpi-datos">
+      <span class="kpi-etiqueta">Importe bruto liquidaciones</span>
+      <span class="kpi-valor">${{ total_bruto|floatformat:0 }}</span>
+    </div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-icono-caja">
+      <img src="{% static 'img/iconos/Icono_pedidos.png' %}" alt="Neto">
+    </div>
+    <div class="kpi-datos">
+      <span class="kpi-etiqueta">Saldo neto a pagar</span>
+      <span class="kpi-valor" style="color:var(--verde-principal);">${{ total_saldo_neto|floatformat:0 }}</span>
+    </div>
+  </div>
+</div>
+
+<!-- Tabla 1: Recepciones de Acopio Filtradas -->
+<div class="panel-contenedor" style="background:var(--fondo-superficie); border:1px solid var(--borde); border-radius:var(--radio-md); margin-bottom:28px; overflow:hidden; box-shadow:var(--sombra-sm);">
+  <div style="padding:16px 20px; border-bottom:1px solid var(--borde); display:flex; justify-content:space-between; align-items:center;">
+    <h3 style="font-size:1.05rem; font-weight:700; margin:0; color:var(--texto);">
+      Recepciones de Materia Prima (Báscula Cachi)
+    </h3>
+    <a href="{% url 'acopio:reportes_exportar_csv' %}?tipo=recepciones&productor={{ filtro_productor }}&campania={{ filtro_campania }}&materia={{ filtro_materia }}&fecha_desde={{ filtro_fecha_desde }}&fecha_hasta={{ filtro_fecha_hasta }}" class="btn btn-secundario btn-sm">
+      Exportar tabla a CSV
+    </a>
+  </div>
+
+  {% if recepciones %}
+  <div style="overflow-x:auto;">
+    <table class="tabla-admin" style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr style="background-color:var(--fondo-hover); text-align:left; border-bottom:1px solid var(--borde);">
+          <th style="padding:10px 14px; font-size:0.82rem; color:var(--texto-secundario);">COMPROBANTE</th>
+          <th style="padding:10px 14px; font-size:0.82rem; color:var(--texto-secundario);">FECHA</th>
+          <th style="padding:10px 14px; font-size:0.82rem; color:var(--texto-secundario);">PRODUCTOR</th>
+          <th style="padding:10px 14px; font-size:0.82rem; color:var(--texto-secundario);">MATERIA PRIMA</th>
+          <th style="padding:10px 14px; font-size:0.82rem; color:var(--texto-secundario);">CAMPAÑA</th>
+          <th style="padding:10px 14px; font-size:0.82rem; color:var(--texto-secundario);">BRUTO</th>
+          <th style="padding:10px 14px; font-size:0.82rem; color:var(--texto-secundario);">TARA</th>
+          <th style="padding:10px 14px; font-size:0.82rem; color:var(--texto-secundario);">NETOS</th>
+          <th style="padding:10px 14px; font-size:0.82rem; color:var(--texto-secundario);">HUMEDAD</th>
+          <th style="padding:10px 14px; font-size:0.82rem; color:var(--texto-secundario);">PRECIO REF</th>
+          <th style="padding:10px 14px; font-size:0.82rem; color:var(--texto-secundario); text-align:center;">ESTADO</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in recepciones %}
+        <tr style="border-bottom:1px solid var(--borde);">
+          <td style="padding:10px 14px; font-weight:700;">
+            <a href="{% url 'acopio:recepcion_detalle' r.pk %}" style="color:var(--verde-oscuro);">
+              {{ r.numero }}
+            </a>
+          </td>
+          <td style="padding:10px 14px;">{{ r.fecha|date:"d/m/Y" }}</td>
+          <td style="padding:10px 14px;">
+            <a href="{% url 'acopio:productor_detalle' r.productor.pk %}" style="color:inherit; font-weight:600;">
+              {{ r.productor.nombre_completo }}
+            </a>
+          </td>
+          <td style="padding:10px 14px;"><span class="pill-tag">{{ r.tipo_producto.nombre }}</span></td>
+          <td style="padding:10px 14px;">{{ r.campania.nombre }}</td>
+          <td style="padding:10px 14px;">{{ r.kilos_brutos }} kg</td>
+          <td style="padding:10px 14px;">{{ r.tara }} kg</td>
+          <td style="padding:10px 14px; font-weight:700; color:var(--verde-principal);">{{ r.kilos_netos }} kg</td>
+          <td style="padding:10px 14px;">{{ r.porcentaje_humedad }}%</td>
+          <td style="padding:10px 14px;">${{ r.precio_referencia }}/kg</td>
+          <td style="padding:10px 14px; text-align:center;">
+            {% if r.liquidacion %}
+            <span class="pill-tag" style="background:#e8f5e9; color:#2e7d32;">Liquidado</span>
+            {% else %}
+            <span class="pill-tag" style="background:#fff3e0; color:#e65100;">Pendiente</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="padding:20px; text-align:center; color:var(--texto-secundario);">
+    No hay recepciones de materia prima que cumplan con los filtros seleccionados.
+  </div>
+  {% endif %}
+</div>
+
+<!-- Tabla 2: Liquidaciones y Vencimientos a 30 Días -->
+<div class="panel-contenedor" style="background:var(--fondo-superficie); border:1px solid var(--borde); border-radius:var(--radio-md); overflow:hidden; box-shadow:var(--sombra-sm);">
+  <div style="padding:16px 20px; border-bottom:1px solid var(--borde); display:flex; justify-content:space-between; align-items:center;">
+    <h3 style="font-size:1.05rem; font-weight:700; margin:0; color:var(--texto);">
+      Liquidaciones de Productores y Vencimientos a 30 Días Corridos (P04)
+    </h3>
+    <a href="{% url 'acopio:reportes_exportar_csv' %}?tipo=liquidaciones&productor={{ filtro_productor }}&campania={{ filtro_campania }}&materia={{ filtro_materia }}&fecha_desde={{ filtro_fecha_desde }}&fecha_hasta={{ filtro_fecha_hasta }}" class="btn btn-principal btn-sm">
+      Exportar liquidaciones a CSV
+    </a>
+  </div>
+
+  {% if liquidaciones %}
+  <div style="overflow-x:auto;">
+    <table class="tabla-admin" style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr style="background-color:var(--fondo-hover); text-align:left; border-bottom:1px solid var(--borde);">
+          <th style="padding:10px 14px; font-size:0.82rem; color:var(--texto-secundario);">N° LIQUIDACIÓN</th>
+          <th style="padding:10px 14px; font-size:0.82rem; color:var(--texto-secundario);">FECHA EMISIÓN</th>
+          <th style="padding:10px 14px; font-size:0.82rem; color:var(--texto-secundario);">VENCIMIENTO EXACTO</th>
+          <th style="padding:10px 14px; font-size:0.82rem; color:var(--texto-secundario);">PRODUCTOR</th>
+          <th style="padding:10px 14px; font-size:0.82rem; color:var(--texto-secundario);">COMPROBANTE</th>
+          <th style="padding:10px 14px; font-size:0.82rem; color:var(--texto-secundario);">IMPORTE BRUTO</th>
+          <th style="padding:10px 14px; font-size:0.82rem; color:var(--texto-secundario);">ANTICIPOS DEDUCIDOS</th>
+          <th style="padding:10px 14px; font-size:0.82rem; color:var(--texto-secundario);">SALDO NETO A PAGAR</th>
+          <th style="padding:10px 14px; font-size:0.82rem; color:var(--texto-secundario); text-align:right;">ACCIONES</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for l in liquidaciones %}
+        <tr style="border-bottom:1px solid var(--borde);">
+          <td style="padding:10px 14px; font-weight:700;">
+            <a href="{% url 'acopio:liquidacion_detalle' l.pk %}" style="color:var(--verde-oscuro);">
+              {{ l.numero }}
+            </a>
+          </td>
+          <td style="padding:10px 14px;">{{ l.fecha_liquidacion|date:"d/m/Y" }}</td>
+          <td style="padding:10px 14px;"><strong style="color:var(--verde-principal);">📅 {{ l.fecha_vencimiento|date:"d/m/Y" }}</strong></td>
+          <td style="padding:10px 14px;">{{ l.comprobante.productor.nombre_completo }}</td>
+          <td style="padding:10px 14px;">{{ l.comprobante.numero }}</td>
+          <td style="padding:10px 14px;">${{ l.importe_bruto|floatformat:2 }}</td>
+          <td style="padding:10px 14px; color:var(--naranja);">- ${{ l.total_anticipos|floatformat:2 }}</td>
+          <td style="padding:10px 14px;"><strong style="color:var(--verde-principal); font-size:1.05rem;">${{ l.saldo_neto|floatformat:2 }}</strong></td>
+          <td style="padding:10px 14px; text-align:right;">
+            <a href="{% url 'acopio:liquidacion_detalle' l.pk %}" class="btn btn-secundario btn-sm">Ver Comprobante</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="padding:20px; text-align:center; color:var(--texto-secundario);">
+    No hay liquidaciones que coincidan con los criterios seleccionados.
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

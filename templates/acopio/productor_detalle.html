@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ficha de Productor · {{ productor.nombre_completo }}{% endblock %}
+
+{% block content %}
+<div class="seccion-header">
+  <div>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+      <a href="{% url 'acopio:productores_lista' %}" style="color:var(--texto-secundario); font-size:0.88rem; text-decoration:none;">&larr; Volver al padrón</a>
+      <span style="color:var(--borde);">&bull;</span>
+      <span style="font-size:0.85rem; font-weight:700; color:var(--verde-principal); text-transform:uppercase;">Ficha Integral de Productor</span>
+    </div>
+    <h1 class="seccion-titulo">{{ productor.nombre_completo }}</h1>
+    <p style="color:var(--texto-secundario); margin:4px 0 0 0; font-size:0.95rem;">
+      📍 {{ productor.localidad }} &nbsp;|&nbsp; CUIT: {{ productor.cuit|default:"No informado" }} &nbsp;|&nbsp; Tel: {{ productor.telefono|default:"No informado" }}
+    </p>
+  </div>
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <a href="{% url 'acopio:anticipo_crear' %}?productor={{ productor.pk }}" class="btn btn-secundario">
+      + Registrar Anticipo
+    </a>
+    <a href="{% url 'acopio:recepcion_crear' %}" class="btn btn-principal">
+      + Nueva Recepción (Pesaje)
+    </a>
+    <a href="{% url 'acopio:productor_editar' productor.pk %}" class="btn btn-secundario">
+      Editar datos
+    </a>
+  </div>
+</div>
+
+<!-- Balance y Resumen del Productor -->
+<div class="kpi-grid" style="margin-bottom:32px;">
+  <div class="kpi-card">
+    <div class="kpi-icono-caja">
+      <img src="{% static 'img/iconos/Icono_depositos.png' %}" alt="Kilos">
+    </div>
+    <div class="kpi-datos">
+      <span class="kpi-etiqueta">Kilos netos entregados</span>
+      <span class="kpi-valor">{{ total_kilos|floatformat:1 }} kg</span>
+    </div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-icono-caja">
+      <img src="{% static 'img/iconos/Icono_Entregas2.png' %}" alt="Anticipos">
+    </div>
+    <div class="kpi-datos">
+      <span class="kpi-etiqueta">Anticipos recibidos</span>
+      <span class="kpi-valor">$ {{ total_anticipos|floatformat:0 }}</span>
+      <small style="color:var(--naranja); font-size:0.8rem;">Pendientes de imputar: ${{ anticipos_pendientes|floatformat:0 }}</small>
+    </div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-icono-caja">
+      <img src="{% static 'img/iconos/Icono_pedidos.png' %}" alt="Liquidaciones">
+    </div>
+    <div class="kpi-datos">
+      <span class="kpi-etiqueta">Total valor bruto liquidado</span>
+      <span class="kpi-valor">$ {{ total_liquidado_bruto|floatformat:0 }}</span>
+    </div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-icono-caja">
+      <img src="{% static 'img/iconos/Icono_pedidos.png' %}" alt="Saldo">
+    </div>
+    <div class="kpi-datos">
+      <span class="kpi-etiqueta">Saldo neto a pagar</span>
+      <span class="kpi-valor" style="color:var(--verde-principal);">$ {{ saldo_neto_liquidado|floatformat:0 }}</span>
+    </div>
+  </div>
+</div>
+
+<!-- Sección 1: Comprobantes de Acopio (P02) -->
+<div class="panel-contenedor" style="background:var(--fondo-superficie); border:1px solid var(--borde); border-radius:var(--radio-md); margin-bottom:28px; overflow:hidden; box-shadow:var(--sombra-sm);">
+  <div style="padding:18px 22px; border-bottom:1px solid var(--borde); display:flex; justify-content:space-between; align-items:center;">
+    <h3 style="font-size:1.1rem; font-weight:700; margin:0; color:var(--texto);">
+      1. Comprobantes de Recepción y Pesaje (Cachi)
+    </h3>
+    <span class="pill-tag">{{ recepciones.count }} pesajes</span>
+  </div>
+
+  {% if recepciones %}
+  <div style="overflow-x:auto;">
+    <table class="tabla-admin" style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr style="background-color:var(--fondo-hover); text-align:left; border-bottom:1px solid var(--borde);">
+          <th style="padding:12px 16px; font-size:0.85rem; color:var(--texto-secundario);">COMPROBANTE</th>
+          <th style="padding:12px 16px; font-size:0.85rem; color:var(--texto-secundario);">FECHA</th>
+          <th style="padding:12px 16px; font-size:0.85rem; color:var(--texto-secundario);">MATERIA PRIMA</th>
+          <th style="padding:12px 16px; font-size:0.85rem; color:var(--texto-secundario);">CAMPAÑA</th>
+          <th style="padding:12px 16px; font-size:0.85rem; color:var(--texto-secundario);">KILOS BRUTOS</th>
+          <th style="padding:12px 16px; font-size:0.85rem; color:var(--texto-secundario);">TARA</th>
+          <th style="padding:12px 16px; font-size:0.85rem; color:var(--texto-secundario);">KILOS NETOS</th>
+          <th style="padding:12px 16px; font-size:0.85rem; color:var(--texto-secundario);">HUMEDAD</th>
+          <th style="padding:12px 16px; font-size:0.85rem; color:var(--texto-secundario); text-align:center;">ESTADO</th>
+          <th style="padding:12px 16px; font-size:0.85rem; color:var(--texto-secundario); text-align:right;">ACCIONES</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in recepciones %}
+        <tr style="border-bottom:1px solid var(--borde);">
+          <td style="padding:12px 16px; font-weight:700;">
+            <a href="{% url 'acopio:recepcion_detalle' r.pk %}" style="color:var(--verde-oscuro);">
+              {{ r.numero }}
+            </a>
+            {% if r.rectificado %}<span class="badge-stock bajo" style="font-size:0.75rem;">Rectificado</span>{% endif %}
+          </td>
+          <td style="padding:12px 16px;">{{ r.fecha|date:"d/m/Y" }}</td>
+          <td style="padding:12px 16px;"><span class="pill-tag">{{ r.tipo_producto.nombre }}</span></td>
+          <td style="padding:12px 16px;">{{ r.campania.nombre }}</td>
+          <td style="padding:12px 16px;">{{ r.kilos_brutos }} kg</td>
+          <td style="padding:12px 16px;">{{ r.tara }} kg</td>
+          <td style="padding:12px 16px; font-weight:700; color:var(--verde-principal);">{{ r.kilos_netos }} kg</td>
+          <td style="padding:12px 16px;">{{ r.porcentaje_humedad }}%</td>
+          <td style="padding:12px 16px; text-align:center;">
+            {% if r.liquidacion %}
+            <span class="pill-tag" style="background:#e8f5e9; color:#2e7d32;">Liquidado</span>
+            {% else %}
+            <span class="pill-tag" style="background:#fff3e0; color:#e65100;">Pendiente</span>
+            {% endif %}
+          </td>
+          <td style="padding:12px 16px; text-align:right; white-space:nowrap;">
+            <a href="{% url 'acopio:recepcion_detalle' r.pk %}" class="btn btn-secundario btn-sm">Ver</a>
+            {% if not r.liquidacion %}
+            <a href="{% url 'acopio:liquidacion_generar' r.pk %}" class="btn btn-principal btn-sm">Liquidar</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="padding:24px; text-align:center; color:var(--texto-secundario);">
+    No se han registrado entregas de materia prima para este productor.
+  </div>
+  {% endif %}
+</div>
+
+<!-- Sección 2: Anticipos Otorgados (P04) -->
+<div class="panel-contenedor" style="background:var(--fondo-superficie); border:1px solid var(--borde); border-radius:var(--radio-md); margin-bottom:28px; overflow:hidden; box-shadow:var(--sombra-sm);">
+  <div style="padding:18px 22px; border-bottom:1px solid var(--borde); display:flex; justify-content:space-between; align-items:center;">
+    <h3 style="font-size:1.1rem; font-weight:700; margin:0; color:var(--texto);">
+      2. Anticipos en Efectivo Entregados (Oficina Salta)
+    </h3>
+    <span class="pill-tag" style="background:var(--naranja-suave); color:var(--naranja);">{{ anticipos.count }} anticipos</span>
+  </div>
+
+  {% if anticipos %}
+  <div style="overflow-x:auto;">
+    <table class="tabla-admin" style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr style="background-color:var(--fondo-hover); text-align:left; border-bottom:1px solid var(--borde);">
+          <th style="padding:12px 16px; font-size:0.85rem; color:var(--texto-secundario);">N° ANTICIPO</th>
+          <th style="padding:12px 16px; font-size:0.85rem; color:var(--texto-secundario);">FECHA</th>
+          <th style="padding:12px 16px; font-size:0.85rem; color:var(--texto-secundario);">IMPORTE</th>
+          <th style="padding:12px 16px; font-size:0.85rem; color:var(--texto-secundario);">AUTORIZADO POR</th>
+          <th style="padding:12px 16px; font-size:0.85rem; color:var(--texto-secundario);">REGISTRADO POR</th>
+          <th style="padding:12px 16px; font-size:0.85rem; color:var(--texto-secundario); text-align:center;">ESTADO IMPUTACIÓN</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in anticipos %}
+        <tr style="border-bottom:1px solid var(--borde);">
+          <td style="padding:12px 16px; font-weight:700;">{{ a.numero }}</td>
+          <td style="padding:12px 16px;">{{ a.fecha|date:"d/m/Y" }}</td>
+          <td style="padding:12px 16px;"><strong style="color:var(--verde-principal);">$ {{ a.importe|floatformat:2 }}</strong></td>
+          <td style="padding:12px 16px;">{{ a.autorizado_por }}</td>
+          <td style="padding:12px 16px;"><small style="color:var(--texto-secundario);">{{ a.usuario_registro.get_full_name|default:a.usuario_registro.username }}</small></td>
+          <td style="padding:12px 16px; text-align:center;">
+            {% if a.imputado %}
+            <span class="pill-tag" style="background:#e8f5e9; color:#2e7d32;">Imputado a Liquidación</span>
+            {% else %}
+            <span class="pill-tag" style="background:#fff3e0; color:#e65100;">Pendiente de Imputar</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="padding:24px; text-align:center; color:var(--texto-secundario);">
+    No se han registrado anticipos en efectivo para este productor.
+  </div>
+  {% endif %}
+</div>
+
+<!-- Sección 3: Liquidaciones Emitidas (P04) -->
+<div class="panel-contenedor" style="background:var(--fondo-superficie); border:1px solid var(--borde); border-radius:var(--radio-md); overflow:hidden; box-shadow:var(--sombra-sm);">
+  <div style="padding:18px 22px; border-bottom:1px solid var(--borde); display:flex; justify-content:space-between; align-items:center;">
+    <h3 style="font-size:1.1rem; font-weight:700; margin:0; color:var(--texto);">
+      3. Liquidaciones y Vencimientos a 30 Días Corridos (P04)
+    </h3>
+    <span class="pill-tag">{{ liquidaciones.count }} emitidas</span>
+  </div>
+
+  {% if liquidaciones %}
+  <div style="overflow-x:auto;">
+    <table class="tabla-admin" style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr style="background-color:var(--fondo-hover); text-align:left; border-bottom:1px solid var(--borde);">
+          <th style="padding:12px 16px; font-size:0.85rem; color:var(--texto-secundario);">N° LIQUIDACIÓN</th>
+          <th style="padding:12px 16px; font-size:0.85rem; color:var(--texto-secundario);">FECHA EMISIÓN</th>
+          <th style="padding:12px 16px; font-size:0.85rem; color:var(--texto-secundario);">VENCIMIENTO (30 DÍAS)</th>
+          <th style="padding:12px 16px; font-size:0.85rem; color:var(--texto-secundario);">VALOR BRUTO</th>
+          <th style="padding:12px 16px; font-size:0.85rem; color:var(--texto-secundario);">ANTICIPOS DEDUCIDOS</th>
+          <th style="padding:12px 16px; font-size:0.85rem; color:var(--texto-secundario);">SALDO NETO A PAGAR</th>
+          <th style="padding:12px 16px; font-size:0.85rem; color:var(--texto-secundario); text-align:right;">ACCIONES</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for l in liquidaciones %}
+        <tr style="border-bottom:1px solid var(--borde);">
+          <td style="padding:12px 16px; font-weight:700;">
+            <a href="{% url 'acopio:liquidacion_detalle' l.pk %}" style="color:var(--verde-oscuro);">
+              {{ l.numero }}
+            </a>
+          </td>
+          <td style="padding:12px 16px;">{{ l.fecha_liquidacion|date:"d/m/Y" }}</td>
+          <td style="padding:12px 16px;">
+            <strong style="color:var(--verde-principal);">📅 {{ l.fecha_vencimiento|date:"d/m/Y" }}</strong>
+          </td>
+          <td style="padding:12px 16px;">$ {{ l.importe_bruto|floatformat:2 }}</td>
+          <td style="padding:12px 16px; color:var(--naranja);">- $ {{ l.total_anticipos|floatformat:2 }}</td>
+          <td style="padding:12px 16px;"><strong style="color:var(--verde-principal); font-size:1.05rem;">$ {{ l.saldo_neto|floatformat:2 }}</strong></td>
+          <td style="padding:12px 16px; text-align:right;">
+            <a href="{% url 'acopio:liquidacion_detalle' l.pk %}" class="btn btn-secundario btn-sm">Ver Comprobante</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="padding:24px; text-align:center; color:var(--texto-secundario);">
+    No se han emitido liquidaciones para este productor todavía.
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

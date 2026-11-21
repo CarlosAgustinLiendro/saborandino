@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Liquidación {{ liquidacion.numero }} · {{ organizacion_nombre }}{% endblock %}
+
+{% block content %}
+<div class="seccion-header no-imprimir">
+  <div>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+      <a href="{% url 'acopio:liquidaciones_lista' %}" style="color:var(--texto-secundario); font-size:0.88rem; text-decoration:none;">&larr; Volver a liquidaciones</a>
+      <span style="color:var(--borde);">&bull;</span>
+      <span style="font-size:0.85rem; font-weight:700; color:var(--verde-principal); text-transform:uppercase;">HU-05 · Liquidación de Productores</span>
+    </div>
+    <h1 class="seccion-titulo">Liquidación Oficial {{ liquidacion.numero }}</h1>
+    <p style="color:var(--texto-secundario); margin:4px 0 0 0; font-size:0.95rem;">
+      Documento interno de cálculo y liquidación de materia prima entregada en centro de acopio.
+    </p>
+  </div>
+  <div style="display:flex; gap:12px;">
+    <button type="button" class="btn btn-principal" onclick="window.print()" style="display:inline-flex; align-items:center; gap:6px;">
+      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+      Imprimir Liquidación
+    </button>
+  </div>
+</div>
+
+<!-- Comprobante Imprimible de Liquidación (HU-05) -->
+<div class="comprobante-imprimible" style="max-width:840px; margin:0 auto; background:#fff; color:#1C2826; border:1px solid #D6D2C4; border-radius:12px; padding:40px; box-shadow:var(--sombra-md);">
+  
+  <!-- Encabezado -->
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:20px; border-bottom:2px solid #3e6531; margin-bottom:24px;">
+    <div style="display:flex; align-items:center; gap:16px;">
+      <img src="{% static 'img/logos/logo_sabores.png' %}" alt="Logo Sabor Andino" style="width:72px; height:72px; object-fit:contain;">
+      <div>
+        <h2 style="font-size:1.6rem; font-weight:800; color:#3e6531; margin:0 0 2px 0;">SABOR ANDINO S.R.L.</h2>
+        <p style="margin:0; font-size:0.88rem; color:#555;">Sistema de Acopio, Liquidación y Distribución Regional</p>
+        <p style="margin:0; font-size:0.82rem; color:#777;">Administración Central · Salta, Argentina</p>
+      </div>
+    </div>
+    <div style="text-align:right;">
+      <span class="pill-tag" style="background:#EBF5E9; color:#3e6531; font-weight:800; font-size:0.9rem; padding:6px 14px; border:1px solid #3e6531;">
+        COMPROBANTE DE LIQUIDACIÓN
+      </span>
+      <h3 style="font-size:1.45rem; font-family:monospace; font-weight:800; margin:10px 0 2px 0; color:#1C2826;">
+        {{ liquidacion.numero }}
+      </h3>
+      <p style="margin:0; font-size:0.85rem; color:#666;">
+        Fecha Emisión: <strong>{{ liquidacion.fecha_liquidacion|date:"d/m/Y" }}</strong>
+      </p>
+    </div>
+  </div>
+
+  <!-- Alerta de Vencimiento de Pago a 30 días corridos (HU-05) -->
+  <div style="background:#FEF3C7; border:1px solid #FCD34D; border-radius:8px; padding:14px 20px; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center;">
+    <div>
+      <span style="font-size:0.82rem; font-weight:700; color:#92400E; text-transform:uppercase;">Condición de Pago Pactada</span>
+      <div style="font-size:1.05rem; font-weight:700; color:#78350F;">
+        Vencimiento a 30 días corridos de la recepción
+      </div>
+    </div>
+    <div style="text-align:right;">
+      <span style="font-size:0.85rem; color:#92400E;">Fecha Límite de Pago:</span>
+      <div style="font-size:1.25rem; font-weight:800; color:#92400E; font-family:monospace;">
+        {{ liquidacion.fecha_vencimiento|date:"d/m/Y" }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Datos del Productor y Comprobante de Origen -->
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; background:#FAF8F3; padding:20px; border-radius:8px; border:1px solid #E8E5DA; margin-bottom:24px;">
+    <div>
+      <h4 style="font-size:0.85rem; text-transform:uppercase; color:#3e6531; font-weight:700; margin:0 0 10px 0;">
+        Beneficiario / Productor
+      </h4>
+      <p style="margin:0 0 4px 0; font-size:1.05rem; font-weight:700; color:#1C2826;">
+        {{ liquidacion.comprobante.productor.nombre_completo }}
+      </p>
+      <p style="margin:0 0 4px 0; font-size:0.9rem; color:#444;">
+        CUIT: <strong>{{ liquidacion.comprobante.productor.cuit|default:"No informado" }}</strong>
+      </p>
+      <p style="margin:0; font-size:0.9rem; color:#444;">
+        Procedencia: <strong>{{ liquidacion.comprobante.productor.localidad }}</strong>
+      </p>
+    </div>
+
+    <div>
+      <h4 style="font-size:0.85rem; text-transform:uppercase; color:#3e6531; font-weight:700; margin:0 0 10px 0;">
+        Recepción de Acopio Asociada
+      </h4>
+      <p style="margin:0 0 4px 0; font-size:0.95rem; color:#1C2826;">
+        N° Comprobante: <strong>{{ liquidacion.comprobante.numero }}</strong>
+      </p>
+      <p style="margin:0 0 4px 0; font-size:0.9rem; color:#444;">
+        Materia Prima: <strong>{{ liquidacion.comprobante.tipo_producto.nombre }}</strong> ({{ liquidacion.comprobante.campania.nombre }})
+      </p>
+      <p style="margin:0; font-size:0.9rem; color:#444;">
+        Fecha Recepción: <strong>{{ liquidacion.comprobante.fecha|date:"d/m/Y" }}</strong>
+      </p>
+    </div>
+  </div>
+
+  <!-- Detalle del Cálculo (HU-05) -->
+  <h4 style="font-size:0.95rem; text-transform:uppercase; color:#3e6531; font-weight:700; margin:0 0 12px 0;">
+    Liquidación de Materia Prima
+  </h4>
+  <table style="width:100%; border-collapse:collapse; margin-bottom:24px;">
+    <thead>
+      <tr style="background:#EBF5E9; border-bottom:2px solid #3e6531;">
+        <th style="padding:12px 14px; text-align:left; font-size:0.85rem;">DETALLE</th>
+        <th style="padding:12px 14px; text-align:right; font-size:0.85rem;">CANTIDAD / PESO</th>
+        <th style="padding:12px 14px; text-align:right; font-size:0.85rem;">PRECIO UNITARIO ($/KG)</th>
+        <th style="padding:12px 14px; text-align:right; font-size:0.85rem;">SUBTOTAL BRUTO ($)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom:1px solid #E8E5DA;">
+        <td style="padding:12px 14px; font-weight:600;">
+          {{ liquidacion.comprobante.tipo_producto.nombre }}
+          <div style="font-size:0.8rem; color:#666;">Humedad registrada: {{ liquidacion.comprobante.porcentaje_humedad }} %</div>
+        </td>
+        <td style="padding:12px 14px; text-align:right; font-family:monospace; font-size:1.02rem;">
+          {{ liquidacion.comprobante.kilos_netos }} kg
+        </td>
+        <td style="padding:12px 14px; text-align:right; font-family:monospace; font-size:1.02rem;">
+          $ {{ liquidacion.comprobante.precio_referencia|floatformat:2 }}
+        </td>
+        <td style="padding:12px 14px; text-align:right; font-family:monospace; font-weight:700; font-size:1.05rem;">
+          $ {{ liquidacion.importe_bruto|floatformat:2 }}
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Deducción de Anticipos Imputados -->
+  <h4 style="font-size:0.95rem; text-transform:uppercase; color:#3e6531; font-weight:700; margin:0 0 12px 0;">
+    Anticipos Imputados y Descontados (HU-04 / HU-05)
+  </h4>
+  {% if liquidacion.anticipos_aplicados.all %}
+  <table style="width:100%; border-collapse:collapse; margin-bottom:24px;">
+    <thead>
+      <tr style="background:#FAF8F3; border-bottom:1px solid #E8E5DA;">
+        <th style="padding:10px 14px; text-align:left; font-size:0.85rem; color:#666;">N° ANTICIPO</th>
+        <th style="padding:10px 14px; text-align:left; font-size:0.85rem; color:#666;">FECHA ENTREGA</th>
+        <th style="padding:10px 14px; text-align:left; font-size:0.85rem; color:#666;">AUTORIZADO POR</th>
+        <th style="padding:10px 14px; text-align:right; font-size:0.85rem; color:#666;">MONTO DEDUCIDO ($)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in liquidacion.anticipos_aplicados.all %}
+      <tr style="border-bottom:1px solid #E8E5DA;">
+        <td style="padding:10px 14px; font-family:monospace; font-weight:600; color:#3e6531;">{{ a.numero }}</td>
+        <td style="padding:10px 14px; font-size:0.88rem;">{{ a.fecha|date:"d/m/Y" }}</td>
+        <td style="padding:10px 14px; font-size:0.88rem;">{{ a.autorizado_por }}</td>
+        <td style="padding:10px 14px; text-align:right; font-family:monospace; font-size:0.98rem; color:var(--rojo);">
+          - $ {{ a.importe|floatformat:2 }}
+        </td>
+      </tr>
+      {% endfor %}
+      <tr style="background:#FAF8F3;">
+        <td colspan="3" style="padding:12px 14px; text-align:right; font-weight:700;">TOTAL ANTICIPOS DEDUCIDOS:</td>
+        <td style="padding:12px 14px; text-align:right; font-family:monospace; font-weight:800; color:var(--rojo); font-size:1.05rem;">
+          - $ {{ liquidacion.total_anticipos|floatformat:2 }}
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  {% else %}
+  <div style="background:#FAF8F3; padding:12px 16px; border-radius:6px; font-size:0.88rem; color:#666; margin-bottom:24px;">
+    No se registraron anticipos previos en efectivo pendientes de descuento para este productor.
+  </div>
+  {% endif %}
+
+  <!-- Total Saldo Neto Final -->
+  <div style="background:#EBF5E9; border:2px solid #3e6531; border-radius:8px; padding:20px; display:flex; justify-content:space-between; align-items:center; margin-bottom:28px;">
+    <div>
+      <span style="font-size:0.85rem; text-transform:uppercase; color:#3e6531; font-weight:700;">Liquidación Neta</span>
+      <h3 style="margin:2px 0 0 0; font-size:1.3rem; color:#1C2826;">SALDO NETO A PAGAR:</h3>
+    </div>
+    <div style="font-size:1.9rem; font-weight:900; font-family:monospace; color:#3e6531;">
+      $ {{ liquidacion.saldo_neto|floatformat:2 }}
+    </div>
+  </div>
+
+  <!-- Aclaración Fiscal Expresa Obligatoria (HU-05) -->
+  <div style="background:#F9FAFB; border:1px solid #D1D5DB; border-radius:6px; padding:12px 16px; text-align:center; font-size:0.85rem; color:#4B5563; font-style:italic; margin-bottom:32px;">
+    <strong>Aclaración fiscal:</strong> El presente comprobante interno de liquidación no reemplaza una factura fiscal.
+  </div>
+
+  <!-- Firmas -->
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:40px; margin-top:20px; padding-top:20px; border-top:1px dashed #CCC;">
+    <div style="text-align:center;">
+      <div style="height:50px;"></div>
+      <div style="border-top:1px solid #444; width:80%; margin:0 auto; padding-top:6px;">
+        <strong style="font-size:0.92rem; color:#1C2826;">{{ liquidacion.usuario_responsable.get_full_name|default:liquidacion.usuario_responsable.username }}</strong>
+        <div style="font-size:0.8rem; color:#666;">Responsable de Liquidaciones · Administración</div>
+      </div>
+    </div>
+
+    <div style="text-align:center;">
+      <div style="height:50px;"></div>
+      <div style="border-top:1px solid #444; width:80%; margin:0 auto; padding-top:6px;">
+        <strong style="font-size:0.92rem; color:#1C2826;">{{ liquidacion.comprobante.productor.nombre_completo }}</strong>
+        <div style="font-size:0.8rem; color:#666;">Conformidad del Productor</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

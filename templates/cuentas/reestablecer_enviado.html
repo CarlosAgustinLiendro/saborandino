@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Revisá tu correo · {{ organizacion_nombre }}{% endblock %}
+
+{% block content %}
+<div class="auth-pantalla-wrapper">
+  <div class="auth-card" style="max-width:500px;">
+    <!-- Cabecera Verde -->
+    <div class="auth-header-verde">
+      <img class="auth-logo-img" src="{% static 'img/logos/logo_sabores.png' %}" alt="Logo Sabor Andino">
+      <h1 style="font-size:1.55rem; font-weight:800; margin-bottom:4px;">{{ organizacion_nombre }}</h1>
+      <p style="font-size:0.92rem; color:var(--verde-claro); margin:0;">Enlace de Seguridad Enviado</p>
+    </div>
+
+    <div class="auth-cuerpo" style="padding:36px 28px; text-align:center;">
+      <div style="font-size:3.2rem; margin-bottom:14px;">✉️</div>
+      <h2 style="font-size:1.45rem; font-weight:800; color:var(--texto); margin-bottom:10px;">¡Revisá tu correo!</h2>
+      
+      <p style="font-size:0.95rem; color:var(--texto-secundario); margin:0 0 16px 0; line-height:1.5;">
+        Se ha enviado un enlace de recuperación seguro a <strong>{{ email|default:"tu correo" }}</strong>.
+      </p>
+
+      <p style="font-size:0.88rem; color:var(--texto-apagado); margin:0 0 24px 0; line-height:1.45;">
+        Si tu cuenta está registrada en el sistema de Sabor Andino, recibirás las instrucciones para restablecer tu contraseña. Por favor, revisá tu bandeja de entrada y la casilla de correo no deseado (spam).
+      </p>
+
+      {% if demo_link %}
+      <!-- Enlace directo para pruebas rápidas en entorno local / desarrollo -->
+      <div style="background:var(--fondo-hover); border:1.5px dashed var(--verde-principal); border-radius:12px; padding:16px; margin-bottom:24px; text-align:left;">
+        <span style="font-size:0.75rem; text-transform:uppercase; font-weight:700; color:var(--verde-principal); letter-spacing:0.5px; display:block; margin-bottom:4px;">
+          ⚡ Acceso directo de prueba (Entorno Local)
+        </span>
+        <p style="font-size:0.83rem; color:var(--texto); margin:0 0 10px 0;">
+          Para verificar el flujo sin necesidad de servidor SMTP externo, podés ingresar directamente al enlace generado:
+        </p>
+        <a href="{{ demo_link }}" class="btn btn-principal" style="width:100%; justify-content:center; padding:10px; font-size:0.9rem; text-decoration:none;">
+          Abrir enlace de recuperación &rarr;
+        </a>
+      </div>
+      {% endif %}
+
+      <div>
+        <a href="{% url 'cuentas:login' %}" class="btn btn-secundario" style="width:100%; padding:12px; border-radius:var(--radio-pill); font-weight:700; text-decoration:none; display:inline-block;">
+          Volver al inicio de sesión
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

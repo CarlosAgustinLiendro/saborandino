@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Liquidaciones a Productores · {{ organizacion_nombre }}{% endblock %}
+
+{% block content %}
+<div class="seccion-header">
+  <div>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+      <a href="{% url 'inicio:home' %}" style="color:var(--texto-secundario); font-size:0.88rem; text-decoration:none;">&larr; Volver al inicio</a>
+      <span style="color:var(--borde);">&bull;</span>
+      <span style="font-size:0.85rem; font-weight:700; color:var(--verde-principal); text-transform:uppercase;">Proceso P4 · Liquidación y Pagos</span>
+    </div>
+    <h1 class="seccion-titulo">Liquidaciones a Productores</h1>
+    <p style="color:var(--texto-secundario); margin:4px 0 0 0; font-size:0.95rem;">
+      Cálculo de importes brutos (kilos netos &times; precio fijado), deducción de anticipos en efectivo y control de vencimiento a 30 días corridos.
+    </p>
+  </div>
+  <div>
+    <a href="{% url 'acopio:recepciones_lista' %}" class="btn btn-principal">
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      Ir a Recepciones para Liquidar
+    </a>
+  </div>
+</div>
+
+<!-- Tabla de Liquidaciones (HU-05) -->
+<div class="panel-contenedor" style="background:var(--fondo-superficie); border:1px solid var(--borde); border-radius:var(--radio-md); overflow:hidden; box-shadow:var(--sombra-sm);">
+  <div style="padding:18px 22px; border-bottom:1px solid var(--borde); display:flex; justify-content:space-between; align-items:center;">
+    <h3 style="font-size:1.15rem; font-weight:700; margin:0; color:var(--texto);">
+      Historial de Liquidaciones Emitidas
+    </h3>
+    <span class="pill-tag">{{ liquidaciones.count }} emitidas</span>
+  </div>
+
+  {% if liquidaciones %}
+  <div style="overflow-x:auto;">
+    <table class="tabla-admin" style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr style="background-color:var(--fondo-hover); text-align:left; border-bottom:1px solid var(--borde);">
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario);">N° LIQUIDACIÓN</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario);">COMPROBANTE</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario);">PRODUCTOR</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario);">MATERIA PRIMA</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario); text-align:center;">VENCIMIENTO (30 DÍAS)</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario); text-align:right;">BRUTO</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario); text-align:right;">ANTICIPOS</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario); text-align:right;">SALDO A PAGAR</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario); text-align:center;">ACCIONES</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for l in liquidaciones %}
+        <tr style="border-bottom:1px solid var(--borde);">
+          <td style="padding:14px 18px; font-weight:700; font-family:monospace; font-size:0.95rem; color:var(--verde-principal);">
+            <a href="{% url 'acopio:liquidacion_detalle' l.id %}" style="color:var(--verde-principal); text-decoration:none;">
+              {{ l.numero }}
+            </a>
+          </td>
+          <td style="padding:14px 18px; font-family:monospace; font-size:0.92rem; color:var(--texto-secundario);">
+            {{ l.comprobante.numero }}
+          </td>
+          <td style="padding:14px 18px; color:var(--texto); font-weight:600; font-size:0.95rem;">
+            {{ l.comprobante.productor.nombre_completo }}
+            <div style="font-size:0.78rem; font-weight:400; color:var(--texto-secundario);">
+              {{ l.comprobante.productor.localidad }}
+            </div>
+          </td>
+          <td style="padding:14px 18px; color:var(--texto); font-size:0.92rem;">
+            {{ l.comprobante.tipo_producto.nombre }}
+            <div style="font-size:0.78rem; color:var(--texto-secundario);">
+              {{ l.comprobante.kilos_netos }} kg &times; ${{ l.comprobante.precio_referencia }}/kg
+            </div>
+          </td>
+          <td style="padding:14px 18px; text-align:center;">
+            <span class="pill-tag" style="background:#FEF3C7; color:#92400E; font-weight:700;">
+              {{ l.fecha_vencimiento|date:"d/m/Y" }}
+            </span>
+          </td>
+          <td style="padding:14px 18px; color:var(--texto); font-size:0.95rem; font-family:monospace; text-align:right;">
+            ${{ l.importe_bruto|floatformat:2 }}
+          </td>
+          <td style="padding:14px 18px; color:var(--rojo); font-size:0.95rem; font-family:monospace; text-align:right;">
+            -${{ l.total_anticipos|floatformat:2 }}
+          </td>
+          <td style="padding:14px 18px; font-weight:800; color:var(--verde-principal); font-size:1.1rem; font-family:monospace; text-align:right;">
+            ${{ l.saldo_neto|floatformat:2 }}
+          </td>
+          <td style="padding:14px 18px; text-align:center; white-space:nowrap;">
+            <a href="{% url 'acopio:liquidacion_detalle' l.id %}" class="btn btn-secundario" style="padding:6px 12px; font-size:0.85rem; display:inline-flex; align-items:center; gap:4px;">
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              Ver / Imprimir
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="padding:48px 24px; text-align:center; color:var(--texto-secundario);">
+    <div style="font-size:2.8rem; margin-bottom:12px;">📑</div>
+    <h4 style="font-size:1.15rem; color:var(--texto); margin-bottom:6px;">No hay liquidaciones generadas todavía</h4>
+    <p style="font-size:0.92rem; margin-bottom:18px;">
+      Podés generar liquidaciones a partir de los comprobantes de acopio confirmados.
+    </p>
+    <a href="{% url 'acopio:recepciones_lista' %}" class="btn btn-principal">
+      Ver Recepciones para Liquidar
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

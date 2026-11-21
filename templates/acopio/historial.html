@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Historial de Actividades y Auditoría · {{ organizacion_nombre }}{% endblock %}
+
+{% block content %}
+<div class="seccion-header">
+  <div>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+      <a href="{% url 'inicio:home' %}" style="color:var(--texto-secundario); font-size:0.88rem; text-decoration:none;">&larr; Volver al inicio</a>
+      <span style="color:var(--borde);">&bull;</span>
+      <span style="font-size:0.85rem; font-weight:700; color:var(--verde-principal); text-transform:uppercase;">Auditoría y Trazabilidad (Pág. 14)</span>
+    </div>
+    <h1 class="seccion-titulo">Historial de Actividades del Sistema</h1>
+    <p style="color:var(--texto-secundario); margin:4px 0 0 0; font-size:0.95rem;">
+      Registro cronológico de creación de comprobantes, rectificaciones de pesaje, cambios de precios de referencia y liquidaciones.
+    </p>
+  </div>
+</div>
+
+<!-- Filtros de Auditoría -->
+<div class="barra-filtros" style="background:var(--fondo-superficie); border:1px solid var(--borde); border-radius:var(--radio-md); padding:16px 20px; margin-bottom:24px; box-shadow:var(--sombra-sm);">
+  <form method="get" style="display:flex; gap:14px; align-items:center; flex-wrap:wrap; width:100%;">
+    <div style="flex:1; min-width:220px;">
+      <input 
+        type="search" 
+        name="q" 
+        value="{{ request.GET.q|default:'' }}" 
+        class="input-redondeado" 
+        placeholder="Buscar por descripción, comprobante o usuario..." 
+        style="width:100%;"
+      >
+    </div>
+    <div style="min-width:180px;">
+      <select name="modulo" class="input-redondeado" style="width:100%;">
+        <option value="">-- Todos los módulos --</option>
+        <option value="Recepción y Pesaje" {% if modulo_actual == "Recepción y Pesaje" %}selected{% endif %}>Recepción y Pesaje</option>
+        <option value="Precios de Referencia" {% if modulo_actual == "Precios de Referencia" %}selected{% endif %}>Precios de Referencia</option>
+        <option value="Anticipos" {% if modulo_actual == "Anticipos" %}selected{% endif %}>Anticipos</option>
+        <option value="Liquidaciones" {% if modulo_actual == "Liquidaciones" %}selected{% endif %}>Liquidaciones</option>
+        <option value="Padrón de Productores" {% if modulo_actual == "Padrón de Productores" %}selected{% endif %}>Padrón de Productores</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-principal">Filtrar Historial</button>
+    {% if request.GET.q or modulo_actual %}
+    <a href="{% url 'acopio:historial' %}" class="btn btn-secundario">Limpiar</a>
+    {% endif %}
+  </form>
+</div>
+
+<!-- Listado de Auditoría -->
+<div class="panel-contenedor" style="background:var(--fondo-superficie); border:1px solid var(--borde); border-radius:var(--radio-md); overflow:hidden; box-shadow:var(--sombra-sm);">
+  <div style="padding:16px 22px; border-bottom:1px solid var(--borde); display:flex; justify-content:space-between; align-items:center;">
+    <h3 style="font-size:1.1rem; font-weight:700; margin:0; color:var(--texto);">
+      Eventos Registrados
+    </h3>
+    <span class="pill-tag">{{ total_eventos }} registros de auditoría</span>
+  </div>
+
+  {% if eventos %}
+  <div style="overflow-x:auto;">
+    <table class="tabla-admin" style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr style="background-color:var(--fondo-hover); text-align:left; border-bottom:1px solid var(--borde);">
+          <th style="padding:12px 18px; font-size:0.85rem; color:var(--texto-secundario);">FECHA Y HORA</th>
+          <th style="padding:12px 18px; font-size:0.85rem; color:var(--texto-secundario);">MÓDULO</th>
+          <th style="padding:12px 18px; font-size:0.85rem; color:var(--texto-secundario);">ACCIÓN</th>
+          <th style="padding:12px 18px; font-size:0.85rem; color:var(--texto-secundario);">DESCRIPCIÓN DEL EVENTO</th>
+          <th style="padding:12px 18px; font-size:0.85rem; color:var(--texto-secundario);">USUARIO RESPONSABLE</th>
+          <th style="padding:12px 18px; font-size:0.85rem; color:var(--texto-secundario);">REF / COMPROBANTE</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ev in eventos %}
+        <tr style="border-bottom:1px solid var(--borde);">
+          <td style="padding:12px 18px; white-space:nowrap; font-size:0.88rem; color:var(--texto);">
+            {{ ev.fecha_hora|date:"d/m/Y H:i:s" }}
+          </td>
+          <td style="padding:12px 18px; white-space:nowrap;">
+            <span class="pill-tag">{{ ev.modulo }}</span>
+          </td>
+          <td style="padding:12px 18px; white-space:nowrap; font-weight:700; font-size:0.85rem;">
+            {% if "RECTIFICAR" in ev.accion %}
+            <span style="color:var(--naranja);">Rectificación</span>
+            {% elif "PRECIO" in ev.accion %}
+            <span style="color:#7c3aed;">Precio Ref.</span>
+            {% elif "LIQUIDACION" in ev.accion %}
+            <span style="color:var(--verde-principal);">Liquidación</span>
+            {% else %}
+            <span style="color:var(--texto);">{{ ev.get_accion_display }}</span>
+            {% endif %}
+          </td>
+          <td style="padding:12px 18px; font-size:0.92rem; color:var(--texto); line-height:1.4;">
+            {{ ev.descripcion }}
+          </td>
+          <td style="padding:12px 18px; white-space:nowrap; font-size:0.9rem;">
+            👤 <strong>{{ ev.usuario.get_full_name|default:ev.usuario.username|default:"Sistema" }}</strong>
+            {% if ev.usuario.is_superuser %}
+            <small style="color:var(--verde-principal); display:block;">(Socio Gerente)</small>
+            {% endif %}
+          </td>
+          <td style="padding:12px 18px; white-space:nowrap; font-family:monospace; font-weight:700; color:var(--verde-oscuro);">
+            {{ ev.comprobante_relacionado|default:"-" }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="padding:36px; text-align:center; color:var(--texto-secundario);">
+    No se registran eventos de auditoría que coincidan con la búsqueda.
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

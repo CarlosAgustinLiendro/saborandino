@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Recepciones y Pesaje · {{ organizacion_nombre }}{% endblock %}
+
+{% block content %}
+<div class="seccion-header">
+  <div>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+      <a href="{% url 'inicio:home' %}" style="color:var(--texto-secundario); font-size:0.88rem; text-decoration:none;">&larr; Volver al inicio</a>
+      <span style="color:var(--borde);">&bull;</span>
+      <span style="font-size:0.85rem; font-weight:700; color:var(--verde-principal); text-transform:uppercase; letter-spacing:0.5px;">Proceso P2 · Acopio Cachi</span>
+    </div>
+    <h1 class="seccion-titulo">Recepción y Pesaje de Materia Prima</h1>
+    <p style="color:var(--texto-secundario); margin:4px 0 0 0; font-size:0.95rem;">
+      Registro de ingresos de camiones, pesaje bruto y tara, control de humedad y emisión de comprobantes oficiales correlativos.
+    </p>
+  </div>
+  <div>
+    <a href="{% url 'acopio:recepcion_crear' %}" class="btn btn-principal">
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      + Nueva Recepción (Pesaje)
+    </a>
+  </div>
+</div>
+
+<!-- Resumen de Métricas de Acopio -->
+<div class="kpi-grid" style="margin-bottom:28px;">
+  <div class="kpi-card">
+    <div class="kpi-icono-caja">
+      <img src="{% static 'img/iconos/Icono_depositos.png' %}" alt="Kilos Netos">
+    </div>
+    <div class="kpi-datos">
+      <span class="kpi-etiqueta">Kilos Netos Acopiados</span>
+      <span class="kpi-valor">{{ total_kilos|floatformat:2 }} kg</span>
+    </div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-icono-caja">
+      <img src="{% static 'img/iconos/Icono_productos.png' %}" alt="Comprobantes">
+    </div>
+    <div class="kpi-datos">
+      <span class="kpi-etiqueta">Comprobantes Emitidos</span>
+      <span class="kpi-valor">{{ comprobantes.count }}</span>
+    </div>
+  </div>
+
+  <a href="{% url 'acopio:productores_lista' %}" class="kpi-card">
+    <div class="kpi-icono-caja">
+      <img src="{% static 'img/iconos/Icono_proveedores.png' %}" alt="Productores">
+    </div>
+    <div class="kpi-datos">
+      <span class="kpi-etiqueta">Padrón de Productores</span>
+      <span class="kpi-valor" style="font-size:1.35rem;">47 en padrón &rarr;</span>
+    </div>
+  </a>
+
+  <div class="kpi-card">
+    <div class="kpi-icono-caja">
+      <img src="{% static 'img/iconos/Icono_entregas.png' %}" alt="Ubicación">
+    </div>
+    <div class="kpi-datos">
+      <span class="kpi-etiqueta">Báscula y Laboratorio</span>
+      <span class="kpi-valor" style="font-size:1.25rem;">Cachi, Salta</span>
+    </div>
+  </div>
+</div>
+
+<!-- Barra de Filtros y Búsqueda (HU-06) -->
+<div class="barra-filtros" style="margin-bottom:24px;">
+  <form method="get" style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; width:100%;">
+    <div class="input-busqueda-wrapper" style="flex:2; min-width:260px;">
+      <svg class="input-busqueda-icon" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+      <input 
+        type="search" 
+        name="q" 
+        value="{{ request.GET.q|default:'' }}" 
+        class="input-busqueda input-redondeado" 
+        placeholder="Buscar por productor, N° comprobante o paraje..."
+        style="padding-left:42px;"
+      >
+    </div>
+
+    <!-- Filtro por fecha -->
+    <div style="flex:1; min-width:160px;">
+      <input 
+        type="date" 
+        name="fecha" 
+        value="{{ request.GET.fecha|default:'' }}" 
+        class="input-redondeado" 
+        title="Filtrar por fecha de recepción"
+        style="padding:10px 16px; font-size:0.92rem;"
+      >
+    </div>
+
+    <!-- Filtro por campaña -->
+    {% if campanias %}
+    <div style="flex:1; min-width:180px;">
+      <select name="campania" class="form-control" style="padding:10px 16px; font-size:0.92rem; border-radius:24px;">
+        <option value="">Todas las campañas</option>
+        {% for c in campanias %}
+        <option value="{{ c.id }}" {% if campania_actual == c.id|stringformat:"s" %}selected{% endif %}>{{ c.nombre }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+
+    <button type="submit" class="btn btn-principal" style="padding:10px 20px;">
+      Filtrar
+    </button>
+    {% if request.GET.q or request.GET.fecha or request.GET.campania %}
+    <a href="{% url 'acopio:recepciones_lista' %}" class="btn btn-secundario" style="padding:10px 16px;">
+      Limpiar
+    </a>
+    {% endif %}
+  </form>
+</div>
+
+<!-- Listado de Comprobantes de Acopio -->
+<div class="panel-contenedor" style="background:var(--fondo-superficie); border:1px solid var(--borde); border-radius:var(--radio-md); overflow:hidden; box-shadow:var(--sombra-sm);">
+  <div style="padding:18px 22px; border-bottom:1px solid var(--borde); display:flex; justify-content:space-between; align-items:center;">
+    <h3 style="font-size:1.15rem; font-weight:700; margin:0; color:var(--texto);">
+      Comprobantes de Acopio Confirmados
+    </h3>
+    <span class="pill-tag">{{ comprobantes.count }} registros</span>
+  </div>
+
+  {% if comprobantes %}
+  <div style="overflow-x:auto;">
+    <table class="tabla-admin" style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr style="background-color:var(--fondo-hover); text-align:left; border-bottom:1px solid var(--borde);">
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario);">N° COMPROBANTE</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario);">FECHA</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario);">PRODUCTOR</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario);">MATERIA PRIMA</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario); text-align:right;">BRUTO</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario); text-align:right;">TARA</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario); text-align:right;">KILOS NETOS</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario); text-align:center;">HUMEDAD</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario); text-align:center;">LIQUIDACIÓN</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario); text-align:center;">ACCIONES</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in comprobantes %}
+        <tr style="border-bottom:1px solid var(--borde); transition:background-color 0.15s ease;">
+          <td style="padding:14px 18px; font-weight:700; font-family:monospace; font-size:0.95rem; color:var(--verde-principal);">
+            <a href="{% url 'acopio:recepcion_detalle' c.id %}" style="color:var(--verde-principal); text-decoration:none;">
+              {{ c.numero }}
+            </a>
+          </td>
+          <td style="padding:14px 18px; color:var(--texto); font-size:0.92rem; white-space:nowrap;">
+            {{ c.fecha|date:"d/m/Y" }}
+          </td>
+          <td style="padding:14px 18px; color:var(--texto); font-weight:600; font-size:0.95rem;">
+            {{ c.productor.nombre_completo }}
+            <div style="font-size:0.78rem; font-weight:400; color:var(--texto-secundario);">
+              {{ c.procedencia }} · CUIT: {{ c.productor.cuit|default:"No informado" }}
+            </div>
+          </td>
+          <td style="padding:14px 18px; color:var(--texto); font-size:0.92rem;">
+            <span style="font-weight:600;">{{ c.tipo_producto.nombre }}</span>
+            <div style="font-size:0.78rem; color:var(--texto-secundario);">{{ c.campania.nombre }}</div>
+          </td>
+          <td style="padding:14px 18px; color:var(--texto-secundario); font-size:0.92rem; text-align:right;">
+            {{ c.kilos_brutos }} kg
+          </td>
+          <td style="padding:14px 18px; color:var(--texto-secundario); font-size:0.92rem; text-align:right;">
+            {{ c.tara }} kg
+          </td>
+          <td style="padding:14px 18px; font-weight:700; color:var(--verde-principal); font-size:1.02rem; text-align:right;">
+            {{ c.kilos_netos }} kg
+          </td>
+          <td style="padding:14px 18px; text-align:center;">
+            <span class="pill-tag" style="background:var(--fondo-hover); color:var(--texto); font-size:0.82rem;">
+              {{ c.porcentaje_humedad }} %
+            </span>
+          </td>
+          <td style="padding:14px 18px; text-align:center;">
+            {% if c.liquidacion %}
+            <a href="{% url 'acopio:liquidacion_detalle' c.liquidacion.id %}" class="pill-tag" style="background:#EBF5E9; color:var(--verde-principal); text-decoration:none; font-weight:700;" title="Ver liquidación {{ c.liquidacion.numero }}">
+              &check; {{ c.liquidacion.numero }}
+            </a>
+            {% else %}
+            <a href="{% url 'acopio:liquidacion_generar' c.id %}" class="btn btn-secundario" style="padding:4px 10px; font-size:0.8rem;" title="Generar liquidación oficial a 30 días">
+              + Liquidar
+            </a>
+            {% endif %}
+          </td>
+          <td style="padding:14px 18px; text-align:center; white-space:nowrap;">
+            <a href="{% url 'acopio:recepcion_detalle' c.id %}" class="btn btn-secundario" style="padding:6px 12px; font-size:0.85rem; display:inline-flex; align-items:center; gap:4px;">
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              Ver / Imprimir
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="padding:48px 24px; text-align:center; color:var(--texto-secundario);">
+    <div style="font-size:2.8rem; margin-bottom:12px;">⚖️</div>
+    <h4 style="font-size:1.15rem; color:var(--texto); margin-bottom:6px;">No se encontraron recepciones coincidentes</h4>
+    <p style="font-size:0.92rem; margin-bottom:18px;">
+      {% if request.GET.q or request.GET.fecha or request.GET.campania %}
+      Probá cambiando los términos de búsqueda o limpiando los filtros seleccionados.
+      {% else %}
+      Aún no se han registrado ingresos de camiones en la báscula de Cachi.
+      {% endif %}
+    </p>
+    <a href="{% url 'acopio:recepcion_crear' %}" class="btn btn-principal">
+      + Registrar primer pesaje de acopio
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

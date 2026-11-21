@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+{% if object %}Editar {{ object.nombre }}{% else %}Nuevo producto{% endif %} · Sabor Andino
+{% endblock %}
+
+{% block content %}
+<div style="max-width:840px; margin:0 auto;">
+  <div style="margin-bottom:20px;">
+    <a href="{% url 'catalogo:lista' %}" class="btn btn-secundario btn-sm">
+      &larr; Volver al catálogo
+    </a>
+  </div>
+
+  <div class="formulario-card">
+    <div class="formulario-header">
+      <span style="font-size:0.85rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--naranja);">
+        Gestión de Inventario
+      </span>
+      <h1 style="font-size:1.85rem; font-weight:800; color:var(--texto); margin:4px 0 8px 0;">
+        {% if object %}Editar producto: {{ object.nombre }}{% else %}Nuevo producto{% endif %}
+      </h1>
+      <p style="color:var(--texto-secundario); font-size:0.95rem; margin:0;">
+        Completá la información del producto. Los cambios se sincronizan en todo el sistema de la organización.
+      </p>
+    </div>
+
+    {% if not form.fields.categoria.queryset.exists %}
+    <div class="aviso-toast error" style="margin-bottom:24px;">
+      <span>Primero se necesita al menos una categoría creada.</span>
+      {% if user.is_superuser %}
+      <a href="{% url 'catalogo:categoria_crear' %}" class="btn btn-sm btn-principal" style="margin-left:14px;">Crear categoría</a>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if form.non_field_errors %}
+    <div class="aviso-toast error" style="margin-bottom:24px;">
+      {{ form.non_field_errors }}
+    </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+
+      <!-- Cargar imagen desde la PC -->
+      <div class="form-grupo" style="margin-bottom:28px;">
+        <label class="form-label">Imagen representativa del producto (desde tu PC)</label>
+        <div class="preview-imagen-contenedor" style="border-radius:20px; padding:20px; display:flex; align-items:center; gap:20px; background:var(--campo-fondo); border:1.5px dashed var(--borde-fuerte);">
+          <img 
+            id="preview-imagen-producto" 
+            class="preview-imagen-thumb" 
+            src="{% if object %}{{ object.get_imagen_url }}{% else %}{% static 'img/productos/aji_molido.png' %}{% endif %}" 
+            alt="Vista previa del producto"
+            style="width:90px; height:90px; object-fit:contain; background:#fff; border-radius:16px; border:1px solid var(--borde); padding:6px;"
+          >
+          <div style="flex:1;">
+            <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
+              <button 
+                type="button" 
+                class="btn btn-principal btn-sm" 
+                onclick="document.getElementById('input-archivo-imagen').click();"
+                style="padding:9px 18px; border-radius:var(--radio-pill); font-size:0.9rem;"
+              >
+                📁 Seleccionar imagen de tu PC
+              </button>
+              <span id="nombre-archivo-seleccionado" style="font-size:0.88rem; color:var(--texto-secundario);">
+                {% if object.archivo_imagen %}{{ object.archivo_imagen.name }}{% else %}Ningún archivo nuevo seleccionado{% endif %}
+              </span>
+            </div>
+            {{ form.archivo_imagen }}
+            <small style="display:block; color:#8C8E8C; font-size:0.83rem;">
+              Formatos recomendados: PNG, JPG, JPEG o WEBP. Podés elegir cualquier foto o diseño desde tu computadora.
+            </small>
+            {% if form.archivo_imagen.errors %}<div class="form-error">{{ form.archivo_imagen.errors }}</div>{% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="form-grid-2col">
+        <!-- Nombre del Producto -->
+        <div class="form-grupo span-2">
+          <label class="form-label" for="{{ form.nombre.id_for_label }}">
+            Nombre del producto <span style="color:var(--rojo);">*</span>
+          </label>
+          {{ form.nombre }}
+          {% if form.nombre.errors %}<div class="form-error">{{ form.nombre.errors }}</div>{% endif %}
+        </div>
+
+        <!-- Categoría -->
+        <div class="form-grupo">
+          <label class="form-label" for="{{ form.categoria.id_for_label }}">
+            Categoría <span style="color:var(--rojo);">*</span>
+          </label>
+          {{ form.categoria }}
+          {% if form.categoria.errors %}<div class="form-error">{{ form.categoria.errors }}</div>{% endif %}
+        </div>
+
+        <!-- Presentación -->
+        <div class="form-grupo">
+          <label class="form-label" for="{{ form.presentacion.id_for_label }}">
+            Presentación (gramaje / envase)
+          </label>
+          {{ form.presentacion }}
+          {% if form.presentacion.errors %}<div class="form-error">{{ form.presentacion.errors }}</div>{% endif %}
+        </div>
+
+        <!-- Stock Actual -->
+        <div class="form-grupo">
+          <label class="form-label" for="{{ form.stock.id_for_label }}">
+            Stock actual (unidades) <span style="color:var(--rojo);">*</span>
+          </label>
+          {{ form.stock }}
+          {% if form.stock.errors %}<div class="form-error">{{ form.stock.errors }}</div>{% endif %}
+        </div>
+
+        <!-- Precio -->
+        <div class="form-grupo">
+          <label class="form-label" for="{{ form.precio.id_for_label }}">
+            Precio de venta ($) <span style="color:var(--rojo);">*</span>
+          </label>
+          {{ form.precio }}
+          {% if form.precio.errors %}<div class="form-error">{{ form.precio.errors }}</div>{% endif %}
+        </div>
+
+        <!-- Origen Regional -->
+        <div class="form-grupo">
+          <label class="form-label" for="{{ form.origen.id_for_label }}">
+            Origen de producción
+          </label>
+          {{ form.origen }}
+          {% if form.origen.errors %}<div class="form-error">{{ form.origen.errors }}</div>{% endif %}
+        </div>
+
+        <!-- Fecha de Vencimiento -->
+        <div class="form-grupo">
+          <label class="form-label" for="{{ form.vencimiento.id_for_label }}">
+            Vencimiento (MM/AA)
+          </label>
+          {{ form.vencimiento }}
+          {% if form.vencimiento.errors %}<div class="form-error">{{ form.vencimiento.errors }}</div>{% endif %}
+        </div>
+
+        <!-- Código Interno -->
+        <div class="form-grupo span-2">
+          <label class="form-label" for="{{ form.codigo.id_for_label }}">
+            Código de identificación <span style="color:var(--rojo);">*</span>
+          </label>
+          {{ form.codigo }}
+          <small style="color:var(--texto-apagado);">Código único para control de acopio y depósito (ej: ESP-001, COND-102).</small>
+          {% if form.codigo.errors %}<div class="form-error">{{ form.codigo.errors }}</div>{% endif %}
+        </div>
+
+        <!-- Descripción -->
+        <div class="form-grupo span-2">
+          <label class="form-label" for="{{ form.descripcion.id_for_label }}">
+            Descripción (opcional)
+          </label>
+          {{ form.descripcion }}
+          {% if form.descripcion.errors %}<div class="form-error">{{ form.descripcion.errors }}</div>{% endif %}
+        </div>
+      </div>
+
+      <div class="form-botones-fila">
+        <a href="{% url 'catalogo:lista' %}" class="btn btn-secundario">Cancelar</a>
+        <button type="submit" class="btn btn-principal">
+          {% if object %}Guardar cambios{% else %}Crear producto{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Vista previa en tiempo real de imagen seleccionada desde la PC
+  document.addEventListener('DOMContentLoaded', () => {
+    const inputArchivo = document.getElementById('input-archivo-imagen');
+    const previewImg = document.getElementById('preview-imagen-producto');
+    const labelNombre = document.getElementById('nombre-archivo-seleccionado');
+
+    if (inputArchivo) {
+      inputArchivo.addEventListener('change', function(e) {
+        const file = this.files && this.files[0];
+        if (file) {
+          labelNombre.textContent = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+          const reader = new FileReader();
+          reader.onload = function(event) {
+            previewImg.src = event.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}

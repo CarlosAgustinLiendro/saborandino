@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmar eliminación · Sabor Andino{% endblock %}
+
+{% block content %}
+<div style="max-width:520px; margin:40px auto;">
+  <div class="formulario-card" style="padding:0; overflow:hidden;">
+    <div class="modal-top-barra"></div>
+    <div style="padding:32px 28px; text-align:center;">
+      <div style="width:64px; height:64px; border-radius:50%; background:var(--rojo-suave); display:flex; align-items:center; justify-content:center; margin:0 auto 16px auto; color:var(--rojo); font-size:1.8rem;">
+        🗑️
+      </div>
+      <h1 style="font-size:1.6rem; font-weight:800; color:var(--texto); margin-bottom:8px;">Eliminar producto</h1>
+      <p style="color:var(--texto-secundario); font-size:1rem; margin-bottom:12px;">
+        ¿Estás seguro que deseas eliminar el producto seleccionado?
+      </p>
+      <div style="font-size:1.2rem; font-weight:700; color:var(--rojo); margin-bottom:20px; font-style:italic;">
+        "{{ object.nombre }}"
+      </div>
+      <p style="font-size:0.85rem; color:var(--texto-apagado); margin-bottom:28px;">
+        Esta acción eliminará el registro de inventario y no se puede deshacer.
+      </p>
+
+      <form method="post" style="margin:0;">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div style="display:flex; gap:12px; justify-content:center;">
+          <a href="{% url 'catalogo:lista' %}" class="btn btn-secundario" style="flex:1;">Cancelar</a>
+          <button type="submit" class="btn btn-peligro" style="flex:1;">Confirmar eliminación</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

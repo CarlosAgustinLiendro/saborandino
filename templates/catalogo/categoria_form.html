@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Editar{% else %}Nueva{% endif %} categoría · Sabor Andino{% endblock %}
+
+{% block content %}
+<div style="max-width:540px; margin:20px auto;">
+  <div style="margin-bottom:20px;">
+    <a href="{% url 'catalogo:categorias' %}" class="btn btn-secundario btn-sm">
+      &larr; Volver a categorías
+    </a>
+  </div>
+
+  <div class="formulario-card">
+    <div class="formulario-header">
+      <span style="font-size:0.85rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--naranja);">
+        Clasificación del Catálogo
+      </span>
+      <h1 style="font-size:1.6rem; font-weight:800; color:var(--texto); margin:4px 0 8px 0;">
+        {% if object %}Editar categoría{% else %}Nueva categoría{% endif %}
+      </h1>
+      <p style="color:var(--texto-secundario); font-size:0.92rem; margin:0;">
+        Ingresá el nombre descriptivo de la categoría de productos.
+      </p>
+    </div>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+      <div class="aviso-toast error" style="margin-bottom:18px;">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="form-grupo">
+        <label class="form-label" for="{{ form.nombre.id_for_label }}">
+          Nombre de la categoría <span style="color:var(--rojo);">*</span>
+        </label>
+        {{ form.nombre }}
+        {% if form.nombre.errors %}<div class="form-error">{{ form.nombre.errors }}</div>{% endif %}
+      </div>
+
+      <div class="form-botones-fila">
+        <a href="{% url 'catalogo:categorias' %}" class="btn btn-secundario">Cancelar</a>
+        <button type="submit" class="btn btn-principal">Guardar categoría</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

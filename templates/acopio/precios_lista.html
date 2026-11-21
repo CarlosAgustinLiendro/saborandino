@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Precios de Referencia · {{ organizacion_nombre }}{% endblock %}
+
+{% block content %}
+<div class="seccion-header">
+  <div>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+      <a href="{% url 'inicio:home' %}" style="color:var(--texto-secundario); font-size:0.88rem; text-decoration:none;">&larr; Volver al inicio</a>
+      <span style="color:var(--borde);">&bull;</span>
+      <span style="font-size:0.85rem; font-weight:700; color:var(--verde-principal); text-transform:uppercase;">HU-03 · Fijación de Precios</span>
+    </div>
+    <h1 class="seccion-titulo">Precios de Referencia por Campaña</h1>
+    <p style="color:var(--texto-secundario); margin:4px 0 0 0; font-size:0.95rem;">
+      Valores por kilogramo utilizados para liquidar la materia prima acopiada. Fijación exclusiva por el Socio Gerente.
+    </p>
+  </div>
+  {% if es_gerente %}
+  <div>
+    <a href="{% url 'acopio:precio_crear' %}" class="btn btn-principal">
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      + Fijar Nuevo Precio
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+{% if not es_gerente %}
+<div class="aviso-toast" style="background:var(--fondo-superficie); border-left:4px solid var(--naranja); margin-bottom:24px; padding:14px 18px;">
+  <strong style="color:var(--texto);">Permisos de Gerencia:</strong>
+  Estás consultando los precios en modo lectura. Por regla de negocio (HU-03), únicamente el Socio Gerente puede establecer o modificar los valores por kilo de campaña.
+</div>
+{% endif %}
+
+<!-- Tabla de Precios (HU-03) -->
+<div class="panel-contenedor" style="background:var(--fondo-superficie); border:1px solid var(--borde); border-radius:var(--radio-md); overflow:hidden; box-shadow:var(--sombra-sm);">
+  <div style="padding:18px 22px; border-bottom:1px solid var(--borde); display:flex; justify-content:space-between; align-items:center;">
+    <h3 style="font-size:1.15rem; font-weight:700; margin:0; color:var(--texto);">
+      Matriz de Precios Vigentes
+    </h3>
+    <span class="pill-tag">{{ precios.count }} combinaciones</span>
+  </div>
+
+  {% if precios %}
+  <div style="overflow-x:auto;">
+    <table class="tabla-admin" style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr style="background-color:var(--fondo-hover); text-align:left; border-bottom:1px solid var(--borde);">
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario);">MATERIA PRIMA</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario);">CAMPAÑA</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario); text-align:right;">PRECIO POR KG ($)</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario);">ÚLTIMA MODIFICACIÓN</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario);">FIJADO POR</th>
+          {% if es_gerente %}
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario); text-align:center;">ACCIONES</th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in precios %}
+        <tr style="border-bottom:1px solid var(--borde);">
+          <td style="padding:14px 18px; font-weight:700; font-size:1rem; color:var(--texto);">
+            {{ p.tipo_producto.nombre }}
+          </td>
+          <td style="padding:14px 18px; color:var(--texto-secundario); font-size:0.92rem;">
+            {{ p.campania.nombre }}
+          </td>
+          <td style="padding:14px 18px; font-weight:800; font-family:monospace; font-size:1.15rem; color:var(--verde-principal); text-align:right;">
+            ${{ p.precio_por_kg|floatformat:2 }} / kg
+          </td>
+          <td style="padding:14px 18px; color:var(--texto); font-size:0.88rem; white-space:nowrap;">
+            {{ p.fecha_fijacion|date:"d/m/Y H:i" }}
+          </td>
+          <td style="padding:14px 18px; color:var(--texto); font-size:0.9rem;">
+            <div style="display:inline-flex; align-items:center; gap:8px;">
+              <span>{{ p.fijado_por.get_full_name|default:p.fijado_por.username }}</span>
+              <span class="pill-tag" style="background:#EBF5E9; color:var(--verde-principal); font-size:0.75rem; font-weight:600; padding:2px 8px; border-radius:12px; white-space:nowrap; border:1px solid #c8e6c9;">Socio Gerente</span>
+            </div>
+          </td>
+          {% if es_gerente %}
+          <td style="padding:14px 18px; text-align:center;">
+            <a href="{% url 'acopio:precio_editar' p.id %}" class="btn btn-secundario" style="padding:6px 14px; font-size:0.85rem;">
+              Editar Precio
+            </a>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="padding:48px 24px; text-align:center; color:var(--texto-secundario);">
+    <div style="font-size:2.8rem; margin-bottom:12px;">🏷️</div>
+    <h4 style="font-size:1.15rem; color:var(--texto); margin-bottom:6px;">No hay precios de referencia registrados</h4>
+    <p style="font-size:0.92rem; margin-bottom:18px;">
+      El Socio Gerente debe cargar los valores de referencia para la campaña agrícola.
+    </p>
+    {% if es_gerente %}
+    <a href="{% url 'acopio:precio_crear' %}" class="btn btn-principal">
+      + Fijar primer precio
+    </a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

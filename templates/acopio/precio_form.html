@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if instancia %}Editar{% else %}Fijar{% endif %} Precio de Referencia · {{ organizacion_nombre }}{% endblock %}
+
+{% block content %}
+<div class="seccion-header">
+  <div>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+      <a href="{% url 'acopio:precios_lista' %}" style="color:var(--texto-secundario); font-size:0.88rem; text-decoration:none;">&larr; Volver a precios</a>
+      <span style="color:var(--borde);">&bull;</span>
+      <span style="font-size:0.85rem; font-weight:700; color:var(--verde-principal); text-transform:uppercase;">HU-03 · Socio Gerente</span>
+    </div>
+    <h1 class="seccion-titulo">{% if instancia %}Modificar{% else %}Establecer{% endif %} Precio de Referencia</h1>
+    <p style="color:var(--texto-secundario); margin:4px 0 0 0; font-size:0.95rem;">
+      Fijación del valor por kilogramo para liquidar cosechas de productores según materia prima y campaña.
+    </p>
+  </div>
+</div>
+
+<div class="panel-contenedor" style="max-width:620px; margin:0 auto; background:var(--fondo-superficie); border:1px solid var(--borde); border-radius:var(--radio-md); padding:32px; box-shadow:var(--sombra-sm);">
+  
+  {% if form.non_field_errors %}
+  <div class="aviso-toast error" style="margin-bottom:20px;">
+    {{ form.non_field_errors }}
+  </div>
+  {% endif %}
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <div style="display:flex; flex-direction:column; gap:20px;">
+      <!-- Materia Prima -->
+      <div class="form-grupo">
+        <label class="form-label" for="{{ form.tipo_producto.id_for_label }}">
+          Tipo de Materia Prima <span style="color:var(--rojo);">*</span>
+        </label>
+        {{ form.tipo_producto }}
+        {% if form.tipo_producto.errors %}<div class="form-error">{{ form.tipo_producto.errors }}</div>{% endif %}
+      </div>
+
+      <!-- Campaña -->
+      <div class="form-grupo">
+        <label class="form-label" for="{{ form.campania.id_for_label }}">
+          Campaña Agrícola <span style="color:var(--rojo);">*</span>
+        </label>
+        {{ form.campania }}
+        {% if form.campania.errors %}<div class="form-error">{{ form.campania.errors }}</div>{% endif %}
+      </div>
+
+      <!-- Precio por Kilogramo -->
+      <div class="form-grupo">
+        <label class="form-label" for="{{ form.precio_por_kg.id_for_label }}">
+          Precio por Kilogramo ($ ARS) <span style="color:var(--rojo);">*</span>
+        </label>
+        <div class="input-icono-wrapper">
+          <span class="icono-izq" style="font-weight:700; color:var(--verde-principal);">$</span>
+          {{ form.precio_por_kg }}
+        </div>
+        <small style="color:#8C8E8C; font-size:0.8rem; margin-top:4px; display:block;">
+          Valor monetario en pesos asignado a cada kilogramo neto recibido.
+        </small>
+        {% if form.precio_por_kg.errors %}<div class="form-error">{{ form.precio_por_kg.errors }}</div>{% endif %}
+      </div>
+
+      <!-- Cuadro Informativo -->
+      <div style="background:var(--fondo-hover); border-left:4px solid var(--verde-principal); padding:14px 18px; border-radius:0 8px 8px 0; font-size:0.88rem; color:var(--texto-secundario); line-height:1.45;">
+        <strong style="color:var(--texto);">Auditoría de Gerencia:</strong>
+        Al guardar, el sistema registrará automáticamente tu usuario ({{ user.get_full_name|default:user.username }}) y la marca temporal de actualización para trazabilidad contable.
+      </div>
+    </div>
+
+    <div class="form-botones-fila" style="margin-top:28px;">
+      <a href="{% url 'acopio:precios_lista' %}" class="btn btn-secundario">
+        Cancelar
+      </a>
+      <button type="submit" class="btn btn-principal" style="padding:12px 28px; font-size:1rem;">
+        Guardar Precio de Referencia
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

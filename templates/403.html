@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Acceso no autorizado (403) · {{ organizacion_nombre }}{% endblock %}
+
+{% block content %}
+<div style="max-width:540px; margin:60px auto; text-align:center;">
+  <div class="formulario-card" style="padding:48px 32px;">
+    <div style="font-size:3.5rem; margin-bottom:12px;">🚫</div>
+    <span style="font-size:0.85rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--rojo);">Error 403</span>
+    <h1 style="font-size:1.8rem; font-weight:800; color:var(--texto); margin:6px 0 12px 0;">Acceso restringido</h1>
+    <p style="color:var(--texto-secundario); font-size:0.95rem; margin-bottom:24px;">
+      No contás con los privilegios requeridos para realizar esta operación.
+    </p>
+    <a href="{% url 'inicio:home' %}" class="btn btn-principal">Volver al inicio</a>
+  </div>
+</div>
+{% endblock %}

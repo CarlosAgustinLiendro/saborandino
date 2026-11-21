@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Anticipos a Productores · {{ organizacion_nombre }}{% endblock %}
+
+{% block content %}
+<div class="seccion-header">
+  <div>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+      <a href="{% url 'inicio:home' %}" style="color:var(--texto-secundario); font-size:0.88rem; text-decoration:none;">&larr; Volver al inicio</a>
+      <span style="color:var(--borde);">&bull;</span>
+      <span style="font-size:0.85rem; font-weight:700; color:var(--verde-principal); text-transform:uppercase;">Proceso P4 · Administración</span>
+    </div>
+    <h1 class="seccion-titulo">Anticipos en Efectivo a Productores</h1>
+    <p style="color:var(--texto-secundario); margin:4px 0 0 0; font-size:0.95rem;">
+      Registro y seguimiento de anticipos de fondos otorgados para labores de cosecha y flete, con imputación automática en liquidaciones.
+    </p>
+  </div>
+  <div>
+    <a href="{% url 'acopio:anticipo_crear' %}" class="btn btn-principal">
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      + Registrar Anticipo
+    </a>
+  </div>
+</div>
+
+<!-- Métricas de Anticipos -->
+<div class="kpi-grid" style="margin-bottom:28px;">
+  <div class="kpi-card">
+    <div class="kpi-icono-caja">
+      <img src="{% static 'img/iconos/Icono_Entregas2.png' %}" alt="Total Anticipos">
+    </div>
+    <div class="kpi-datos">
+      <span class="kpi-etiqueta">Total Fondos Anticipados</span>
+      <span class="kpi-valor">${{ total_anticipos|floatformat:2 }}</span>
+    </div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-icono-caja">
+      <img src="{% static 'img/iconos/Icono_proveedores.png' %}" alt="Anticipos">
+    </div>
+    <div class="kpi-datos">
+      <span class="kpi-etiqueta">Anticipos Emitidos</span>
+      <span class="kpi-valor">{{ anticipos.count }}</span>
+    </div>
+  </div>
+
+  <a href="{% url 'acopio:liquidaciones_lista' %}" class="kpi-card">
+    <div class="kpi-icono-caja">
+      <img src="{% static 'img/iconos/Icono_pedidos.png' %}" alt="Liquidaciones">
+    </div>
+    <div class="kpi-datos">
+      <span class="kpi-etiqueta">Imputación en Liquidaciones</span>
+      <span class="kpi-valor" style="font-size:1.35rem;">Ver liquidaciones &rarr;</span>
+    </div>
+  </a>
+</div>
+
+<!-- Barra de Búsqueda -->
+<div class="barra-filtros" style="margin-bottom:24px;">
+  <form method="get" style="display:flex; gap:12px; align-items:center; width:100%;">
+    <div class="input-busqueda-wrapper" style="flex:1;">
+      <svg class="input-busqueda-icon" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+      <input 
+        type="search" 
+        name="q" 
+        value="{{ request.GET.q|default:'' }}" 
+        class="input-busqueda input-redondeado" 
+        placeholder="Buscar por productor o número de anticipo..."
+        style="padding-left:42px;"
+      >
+    </div>
+    <button type="submit" class="btn btn-principal" style="padding:10px 20px;">
+      Buscar
+    </button>
+    {% if request.GET.q %}
+    <a href="{% url 'acopio:anticipos_lista' %}" class="btn btn-secundario" style="padding:10px 16px;">
+      Limpiar
+    </a>
+    {% endif %}
+  </form>
+</div>
+
+<!-- Tabla de Anticipos (HU-04) -->
+<div class="panel-contenedor" style="background:var(--fondo-superficie); border:1px solid var(--borde); border-radius:var(--radio-md); overflow:hidden; box-shadow:var(--sombra-sm);">
+  <div style="padding:18px 22px; border-bottom:1px solid var(--borde); display:flex; justify-content:space-between; align-items:center;">
+    <h3 style="font-size:1.15rem; font-weight:700; margin:0; color:var(--texto);">
+      Padrón de Anticipos en Efectivo Registrados
+    </h3>
+    <span class="pill-tag">{{ anticipos.count }} registros</span>
+  </div>
+
+  {% if anticipos %}
+  <div style="overflow-x:auto;">
+    <table class="tabla-admin" style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr style="background-color:var(--fondo-hover); text-align:left; border-bottom:1px solid var(--borde);">
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario);">N° ANTICIPO</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario);">FECHA</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario);">PRODUCTOR</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario); text-align:right;">IMPORTE ($)</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario);">AUTORIZADO POR</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario);">REGISTRADO POR</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario); text-align:center;">ESTADO DE IMPUTACIÓN</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in anticipos %}
+        <tr style="border-bottom:1px solid var(--borde);">
+          <td style="padding:14px 18px; font-weight:700; font-family:monospace; font-size:0.95rem; color:var(--verde-principal);">
+            {{ a.numero }}
+          </td>
+          <td style="padding:14px 18px; color:var(--texto); font-size:0.92rem; white-space:nowrap;">
+            {{ a.fecha|date:"d/m/Y" }}
+          </td>
+          <td style="padding:14px 18px; color:var(--texto); font-weight:600; font-size:0.95rem;">
+            {{ a.productor.nombre_completo }}
+            <div style="font-size:0.78rem; font-weight:400; color:var(--texto-secundario);">
+              {{ a.productor.localidad }}
+            </div>
+          </td>
+          <td style="padding:14px 18px; font-weight:800; font-size:1.05rem; color:var(--texto); font-family:monospace; text-align:right;">
+            ${{ a.importe|floatformat:2 }}
+          </td>
+          <td style="padding:14px 18px; color:var(--texto); font-size:0.9rem;">
+            {{ a.autorizado_por }}
+          </td>
+          <td style="padding:14px 18px; color:var(--texto-secundario); font-size:0.88rem;">
+            {{ a.usuario_registro.get_full_name|default:a.usuario_registro.username }}
+          </td>
+          <td style="padding:14px 18px; text-align:center;">
+            {% if a.imputado %}
+            <span class="pill-tag" style="background:#EBF5E9; color:var(--verde-principal); font-weight:700;">
+              &check; Imputado en Liquidación
+            </span>
+            {% else %}
+            <span class="pill-tag" style="background:var(--naranja-suave); color:var(--naranja); font-weight:700;">
+              Pendiente de Descuento
+            </span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="padding:48px 24px; text-align:center; color:var(--texto-secundario);">
+    <div style="font-size:2.8rem; margin-bottom:12px;">💵</div>
+    <h4 style="font-size:1.15rem; color:var(--texto); margin-bottom:6px;">No se encontraron anticipos</h4>
+    <p style="font-size:0.92rem; margin-bottom:18px;">
+      {% if request.GET.q %}
+      No hay registros que coincidan con "{{ request.GET.q }}".
+      {% else %}
+      Aún no se han concedido anticipos en efectivo a los productores para la presente campaña.
+      {% endif %}
+    </p>
+    <a href="{% url 'acopio:anticipo_crear' %}" class="btn btn-principal">
+      + Registrar nuevo anticipo
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

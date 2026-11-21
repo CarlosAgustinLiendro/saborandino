@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Rectificar Comprobante {{ comprobante.numero }} · {{ organizacion_nombre }}{% endblock %}
+
+{% block content %}
+<div class="seccion-header">
+  <div>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+      <a href="{% url 'acopio:recepcion_detalle' comprobante.pk %}" style="color:var(--texto-secundario); font-size:0.88rem; text-decoration:none;">&larr; Volver al comprobante</a>
+      <span style="color:var(--borde);">&bull;</span>
+      <span style="font-size:0.85rem; font-weight:700; color:var(--naranja); text-transform:uppercase;">Rectificación Autorizada</span>
+    </div>
+    <h1 class="seccion-titulo">Rectificar Comprobante · {{ comprobante.numero }}</h1>
+    <p style="color:var(--texto-secundario); margin:4px 0 0 0; font-size:0.95rem;">
+      Productor: <strong>{{ comprobante.productor.nombre_completo }}</strong> &nbsp;|&nbsp; Materia Prima: <strong>{{ comprobante.tipo_producto.nombre }}</strong>
+    </p>
+  </div>
+</div>
+
+<div class="formulario-card" style="max-width:720px; margin:0 auto; background:var(--fondo-superficie); border:1px solid var(--borde); border-radius:var(--radio-md); padding:32px; box-shadow:var(--sombra-sm);">
+  <div style="background:#fff3e0; border-left:4px solid #f59e0b; padding:14px 18px; border-radius:4px; margin-bottom:24px;">
+    <strong style="color:#b45309; display:block; margin-bottom:4px;">Política de Seguridad y Auditoría (Pág. 8 y 14)</strong>
+    <p style="color:#78350f; margin:0; font-size:0.88rem; line-height:1.4;">
+      El sistema no permite borrados silenciosos de comprobantes emitidos. Cualquier ajuste en los valores de pesaje (kilos brutos o tara) o humedad requiere justificación obligatoria y quedará registrado de forma inalterable en el Historial de Auditoría con su usuario y marca de tiempo.
+    </p>
+  </div>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div class="alerta alerta-error" style="margin-bottom:20px; padding:12px; border-radius:var(--radio-sm); background:#fee2e2; color:#991b1b; border:1px solid #f87171;">
+      {% for error in form.non_field_errors %}
+      <p style="margin:0;">{{ error }}</p>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:18px;">
+      <div class="form-grupo">
+        <label class="form-label" style="display:block; font-weight:600; margin-bottom:6px; color:var(--texto);">
+          Kilos Brutos (Báscula) *
+        </label>
+        {{ form.kilos_brutos }}
+        {% if form.kilos_brutos.errors %}
+        <span class="form-error" style="color:var(--rojo); font-size:0.85rem;">{{ form.kilos_brutos.errors.0 }}</span>
+        {% endif %}
+      </div>
+
+      <div class="form-grupo">
+        <label class="form-label" style="display:block; font-weight:600; margin-bottom:6px; color:var(--texto);">
+          Tara (Camión / Envase) (kg) *
+        </label>
+        {{ form.tara }}
+        {% if form.tara.errors %}
+        <span class="form-error" style="color:var(--rojo); font-size:0.85rem;">{{ form.tara.errors.0 }}</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Cálculo en Vivo de Kilos Netos Rectificados -->
+    <div style="background:var(--fondo-hover); border:1px dashed var(--borde); border-radius:var(--radio); padding:16px 20px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <span style="font-size:0.85rem; color:var(--texto-secundario); text-transform:uppercase; font-weight:700;">Nuevos Kilos Netos Resultantes:</span>
+        <div id="resultado-kilos-netos" style="font-size:1.6rem; font-weight:800; color:var(--verde-principal);">
+          {{ comprobante.kilos_netos }} kg
+        </div>
+      </div>
+      <div style="font-size:0.85rem; color:var(--texto-apagado); text-align:right;">
+        Fórmula: Bruto - Tara<br>
+        (Validación: Bruto &gt; Tara)
+      </div>
+    </div>
+
+    <div class="form-grupo" style="margin-bottom:18px;">
+      <label class="form-label" style="display:block; font-weight:600; margin-bottom:6px; color:var(--texto);">
+        Porcentaje de Humedad (%) *
+      </label>
+      {{ form.porcentaje_humedad }}
+      {% if form.porcentaje_humedad.errors %}
+      <span class="form-error" style="color:var(--rojo); font-size:0.85rem;">{{ form.porcentaje_humedad.errors.0 }}</span>
+      {% endif %}
+    </div>
+
+    <div class="form-grupo" style="margin-bottom:18px;">
+      <label class="form-label" style="display:block; font-weight:600; margin-bottom:6px; color:var(--texto);">
+        Observaciones de Carga
+      </label>
+      {{ form.observaciones }}
+    </div>
+
+    <div class="form-grupo" style="margin-bottom:28px;">
+      <label class="form-label" style="display:block; font-weight:700; margin-bottom:6px; color:var(--naranja);">
+        Motivo Obligatorio de Rectificación y Autorización *
+      </label>
+      {{ form.motivo_rectificacion }}
+      {% if form.motivo_rectificacion.errors %}
+      <span class="form-error" style="color:var(--rojo); font-size:0.85rem;">{{ form.motivo_rectificacion.errors.0 }}</span>
+      {% endif %}
+      <small style="color:var(--texto-apagado); font-size:0.82rem; margin-top:4px; display:block;">
+        Indique detalladamente por qué se corrige el pesaje y quién lo autorizó (ej. Roberto Zerpa).
+      </small>
+    </div>
+
+    <div style="display:flex; gap:12px; justify-content:flex-end;">
+      <a href="{% url 'acopio:recepcion_detalle' comprobante.pk %}" class="btn btn-secundario">
+        Cancelar
+      </a>
+      <button type="submit" class="btn btn-principal" style="background:var(--naranja); border-color:var(--naranja);">
+        Guardar Rectificación Autorizada
+      </button>
+    </div>
+  </form>
+</div>
+
+<script>
+  function calcularNetos() {
+    const bruto = parseFloat(document.getElementById('id_kilos_brutos').value) || 0;
+    const tara = parseFloat(document.getElementById('id_tara').value) || 0;
+    const divRes = document.getElementById('resultado-kilos-netos');
+    if (bruto > tara && bruto > 0) {
+      const netos = (bruto - tara).toFixed(2);
+      divRes.textContent = netos + " kg";
+      divRes.style.color = "var(--verde-principal)";
+    } else if (bruto <= tara && bruto > 0) {
+      divRes.textContent = "Error: Bruto <= Tara";
+      divRes.style.color = "var(--rojo)";
+    } else {
+      divRes.textContent = "0.00 kg";
+      divRes.style.color = "var(--texto-apagado)";
+    }
+  }
+  document.getElementById('id_kilos_brutos').addEventListener('input', calcularNetos);
+  document.getElementById('id_tara').addEventListener('input', calcularNetos);
+</script>
+{% endblock %}

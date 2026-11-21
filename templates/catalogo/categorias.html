@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Categorías · Sabor Andino{% endblock %}
+
+{% block content %}
+<div style="max-width:880px; margin:0 auto;">
+  <div style="margin-bottom:20px;">
+    <a href="{% url 'catalogo:lista' %}" class="btn btn-secundario btn-sm">
+      &larr; Volver al catálogo
+    </a>
+  </div>
+
+  <div class="seccion-header" style="flex-wrap:wrap; gap:16px;">
+    <div>
+      <span style="font-size:0.85rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--naranja);">Clasificación</span>
+      <h1 style="font-size:2rem; font-weight:800; color:var(--texto); margin:2px 0 6px 0;">Categorías de Especias</h1>
+      <p style="color:var(--texto-secundario); font-size:0.95rem; margin:0;">
+        Familias de condimentos, hierbas aromáticas, pimientos y semillas de los Valles Calchaquíes.
+      </p>
+    </div>
+    {% if user.is_superuser %}
+    <a href="{% url 'catalogo:categoria_crear' %}" class="btn btn-principal">
+      + Agregar categoría
+    </a>
+    {% endif %}
+  </div>
+
+  {% if object_list %}
+  <div class="tabla-contenedor">
+    <table class="tabla-datos">
+      <thead>
+        <tr>
+          <th>Nombre de Categoría</th>
+          <th>Productos asociados</th>
+          <th style="text-align:right;">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in object_list %}
+        <tr>
+          <td>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span style="font-size:1.3rem;">🌿</span>
+              <strong style="color:var(--texto); font-size:1.05rem;">{{ c.nombre }}</strong>
+            </div>
+          </td>
+          <td>
+            <span class="pill-tag">{{ c.producto_set.count }} producto{{ c.producto_set.count|pluralize:"s" }}</span>
+          </td>
+          <td style="text-align:right;">
+            {% if user.is_superuser %}
+            <div style="display:inline-flex; gap:8px;">
+              <a href="{% url 'catalogo:categoria_editar' c.pk %}" class="btn btn-secundario btn-sm">Editar</a>
+              <a href="{% url 'catalogo:categoria_eliminar' c.pk %}" class="btn btn-outline-peligro btn-sm">Eliminar</a>
+            </div>
+            {% else %}
+            <span style="color:var(--texto-apagado); font-size:0.85rem;">Solo lectura</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include 'componentes/paginacion.html' %}
+  {% else %}
+  <div style="background:var(--fondo-superficie); border:1px solid var(--borde); border-radius:var(--radio); padding:40px; text-align:center;">
+    <p style="font-size:1.1rem; color:var(--texto); font-weight:600; margin-bottom:8px;">Todavía no hay categorías registradas.</p>
+    {% if user.is_superuser %}
+    <p style="font-size:0.95rem; color:var(--texto-secundario); margin-bottom:20px;">Creá la primera categoría (ej: Especias, Condimentos, Aromáticas).</p>
+    <a href="{% url 'catalogo:categoria_crear' %}" class="btn btn-principal">+ Crear categoría</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

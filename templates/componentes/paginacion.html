@@ -1,0 +1,19 @@
+{% if is_paginated %}
+<nav class="paginacion" aria-label="Páginas" style="display:flex; justify-content:center; align-items:center; gap:16px; margin:28px 0;">
+  {% if page_obj.has_previous %}
+  <a href="?q={{ request.GET.q|urlencode }}&categoria={{ request.GET.categoria|urlencode }}&page={{ page_obj.previous_page_number }}" class="btn btn-secundario btn-sm">
+    &larr; Anterior
+  </a>
+  {% endif %}
+
+  <span style="font-size:0.92rem; color:var(--texto-secundario); font-weight:600;">
+    Página {{ page_obj.number }} de {{ paginator.num_pages }}
+  </span>
+
+  {% if page_obj.has_next %}
+  <a href="?q={{ request.GET.q|urlencode }}&categoria={{ request.GET.categoria|urlencode }}&page={{ page_obj.next_page_number }}" class="btn btn-secundario btn-sm">
+    Siguiente &rarr;
+  </a>
+  {% endif %}
+</nav>
+{% endif %}

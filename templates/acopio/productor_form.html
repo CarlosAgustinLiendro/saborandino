@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }} · {{ organizacion_nombre }}{% endblock %}
+
+{% block content %}
+<div class="seccion-header">
+  <div>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+      <a href="{% url 'acopio:productores_lista' %}" style="color:var(--texto-secundario); font-size:0.88rem; text-decoration:none;">&larr; Volver al padrón</a>
+      <span style="color:var(--borde);">&bull;</span>
+      <span style="font-size:0.85rem; font-weight:700; color:var(--verde-principal); text-transform:uppercase;">Módulo de Productores</span>
+    </div>
+    <h1 class="seccion-titulo">{{ titulo }}</h1>
+    <p style="color:var(--texto-secundario); margin:4px 0 0 0; font-size:0.95rem;">
+      Actualización de datos para el padrón oficial de 47 productores de los Valles Calchaquíes.
+    </p>
+  </div>
+</div>
+
+<div class="formulario-card" style="max-width:680px; margin:0 auto; background:var(--fondo-superficie); border:1px solid var(--borde); border-radius:var(--radio-md); padding:32px; box-shadow:var(--sombra-sm);">
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div class="alerta alerta-error" style="margin-bottom:20px; padding:12px; border-radius:var(--radio-sm); background:#fee2e2; color:#991b1b; border:1px solid #f87171;">
+      {% for error in form.non_field_errors %}
+      <p style="margin:0;">{{ error }}</p>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="form-grupo" style="margin-bottom:18px;">
+      <label class="form-label" style="display:block; font-weight:600; margin-bottom:6px; color:var(--texto);">
+        Nombre Completo o Razón Social *
+      </label>
+      {{ form.nombre_completo }}
+      {% if form.nombre_completo.errors %}
+      <span class="form-error" style="color:var(--rojo); font-size:0.85rem;">{{ form.nombre_completo.errors.0 }}</span>
+      {% endif %}
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:18px;">
+      <div class="form-grupo">
+        <label class="form-label" style="display:block; font-weight:600; margin-bottom:6px; color:var(--texto);">
+          CUIT / Identificación Fiscal
+        </label>
+        {{ form.cuit }}
+        {% if form.cuit.errors %}
+        <span class="form-error" style="color:var(--rojo); font-size:0.85rem;">{{ form.cuit.errors.0 }}</span>
+        {% endif %}
+      </div>
+
+      <div class="form-grupo">
+        <label class="form-label" style="display:block; font-weight:600; margin-bottom:6px; color:var(--texto);">
+          Teléfono de Contacto
+        </label>
+        {{ form.telefono }}
+        {% if form.telefono.errors %}
+        <span class="form-error" style="color:var(--rojo); font-size:0.85rem;">{{ form.telefono.errors.0 }}</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="form-grupo" style="margin-bottom:18px;">
+      <label class="form-label" style="display:block; font-weight:600; margin-bottom:6px; color:var(--texto);">
+        Localidad / Paraje de los Valles Calchaquíes *
+      </label>
+      {{ form.localidad }}
+      {% if form.localidad.errors %}
+      <span class="form-error" style="color:var(--rojo); font-size:0.85rem;">{{ form.localidad.errors.0 }}</span>
+      {% endif %}
+      <small style="color:var(--texto-apagado); font-size:0.82rem; margin-top:4px; display:block;">
+        Zonas de abastecimiento: Cachi, Molinos, Seclantás, San Carlos o Cafayate.
+      </small>
+    </div>
+
+    <div class="form-grupo" style="margin-bottom:28px; display:flex; align-items:center; gap:10px;">
+      {{ form.activo }}
+      <label for="{{ form.activo.id_for_label }}" style="font-weight:600; color:var(--texto); cursor:pointer;">
+        Productor habilitado para recepciones y anticipos
+      </label>
+    </div>
+
+    <div style="display:flex; gap:12px; justify-content:flex-end;">
+      <a href="{% url 'acopio:productores_lista' %}" class="btn btn-secundario">
+        Cancelar
+      </a>
+      <button type="submit" class="btn btn-principal">
+        Guardar datos del productor
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

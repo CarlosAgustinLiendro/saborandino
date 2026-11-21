@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Padrón de Productores · {{ organizacion_nombre }}{% endblock %}
+
+{% block content %}
+<div class="seccion-header">
+  <div>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+      <a href="{% url 'inicio:home' %}" style="color:var(--texto-secundario); font-size:0.88rem; text-decoration:none;">&larr; Volver al inicio</a>
+      <span style="color:var(--borde);">&bull;</span>
+      <span style="font-size:0.85rem; font-weight:700; color:var(--verde-principal); text-transform:uppercase;">Almacén D1 · Padrón Oficial</span>
+    </div>
+    <h1 class="seccion-titulo">Padrón de Productores Agropecuarios</h1>
+    <p style="color:var(--texto-secundario); margin:4px 0 0 0; font-size:0.95rem;">
+      Universo de 47 productores asociados de los Valles Calchaquíes: Cachi, Molinos, Seclantás, San Carlos y Cafayate.
+    </p>
+  </div>
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <a href="{% url 'acopio:productor_crear' %}" class="btn btn-secundario">
+      + Nuevo Productor
+    </a>
+    <a href="{% url 'acopio:recepcion_crear' %}" class="btn btn-principal">
+      + Nueva Recepción
+    </a>
+  </div>
+</div>
+
+<!-- Barra de Búsqueda -->
+<div class="barra-filtros" style="margin-bottom:24px;">
+  <form method="get" style="display:flex; gap:12px; align-items:center; width:100%;">
+    <div class="input-busqueda-wrapper" style="flex:1;">
+      <svg class="input-busqueda-icon" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+      <input 
+        type="search" 
+        name="q" 
+        value="{{ request.GET.q|default:'' }}" 
+        class="input-busqueda input-redondeado" 
+        placeholder="Buscar productor por nombre, paraje o CUIT..."
+        style="padding-left:42px;"
+      >
+    </div>
+    <button type="submit" class="btn btn-principal" style="padding:10px 20px;">
+      Buscar
+    </button>
+    {% if request.GET.q %}
+    <a href="{% url 'acopio:productores_lista' %}" class="btn btn-secundario" style="padding:10px 16px;">
+      Limpiar
+    </a>
+    {% endif %}
+  </form>
+</div>
+
+<!-- Tabla de Productores -->
+<div class="panel-contenedor" style="background:var(--fondo-superficie); border:1px solid var(--borde); border-radius:var(--radio-md); overflow:hidden; box-shadow:var(--sombra-sm);">
+  <div style="padding:18px 22px; border-bottom:1px solid var(--borde); display:flex; justify-content:space-between; align-items:center;">
+    <h3 style="font-size:1.15rem; font-weight:700; margin:0; color:var(--texto);">
+      Productores Habilitados
+    </h3>
+    <span class="pill-tag">{{ productores.count }} registrados</span>
+  </div>
+
+  {% if productores %}
+  <div style="overflow-x:auto;">
+    <table class="tabla-admin" style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr style="background-color:var(--fondo-hover); text-align:left; border-bottom:1px solid var(--borde);">
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario);">PRODUCTOR / RAZÓN SOCIAL</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario);">CUIT / DOCUMENTO</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario);">LOCALIDAD / ZONA</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario);">TELÉFONO</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario); text-align:center;">ESTADO</th>
+          <th style="padding:14px 18px; font-size:0.85rem; font-weight:700; color:var(--texto-secundario); text-align:center;">OPERACIONES</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for prod in productores %}
+        <tr style="border-bottom:1px solid var(--borde);">
+          <td style="padding:14px 18px; font-weight:700; font-size:0.98rem; color:var(--texto);">
+            {{ prod.nombre_completo }}
+          </td>
+          <td style="padding:14px 18px; font-family:monospace; font-size:0.92rem; color:var(--texto-secundario);">
+            {{ prod.cuit|default:"No informado" }}
+          </td>
+          <td style="padding:14px 18px; color:var(--texto); font-size:0.92rem;">
+            📍 {{ prod.localidad }}
+          </td>
+          <td style="padding:14px 18px; color:var(--texto-secundario); font-size:0.9rem;">
+            {{ prod.telefono|default:"-" }}
+          </td>
+          <td style="padding:14px 18px; text-align:center;">
+            {% if prod.activo %}
+            <span class="pill-tag" style="background:#EBF5E9; color:var(--verde-principal); font-weight:700;">
+              Activo
+            </span>
+            {% else %}
+            <span class="pill-tag" style="background:#FEE2E2; color:var(--rojo); font-weight:700;">
+              Inactivo
+            </span>
+            {% endif %}
+          </td>
+          <td style="padding:14px 18px; text-align:center; white-space:nowrap;">
+            <a href="{% url 'acopio:productor_detalle' prod.pk %}" class="btn btn-principal btn-sm" style="padding:6px 12px; font-size:0.82rem;">
+              Ficha integral
+            </a>
+            <a href="{% url 'acopio:productor_editar' prod.pk %}" class="btn btn-secundario btn-sm" style="padding:6px 10px; font-size:0.82rem;">
+              Editar
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="padding:48px 24px; text-align:center; color:var(--texto-secundario);">
+    <div style="font-size:2.8rem; margin-bottom:12px;">👨‍🌾</div>
+    <h4 style="font-size:1.15rem; color:var(--texto); margin-bottom:6px;">No se encontraron productores</h4>
+    <p style="font-size:0.92rem;">
+      No hay registros que coincidan con los criterios de búsqueda.
+    </p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

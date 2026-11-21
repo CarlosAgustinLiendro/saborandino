@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Nuevo Pesaje de Recepción · {{ organizacion_nombre }}{% endblock %}
+
+{% block content %}
+<div class="seccion-header">
+  <div>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+      <a href="{% url 'acopio:recepciones_lista' %}" style="color:var(--texto-secundario); font-size:0.88rem; text-decoration:none;">&larr; Volver al listado de recepciones</a>
+    </div>
+    <h1 class="seccion-titulo">Registrar Recepción y Pesaje en Báscula</h1>
+    <p style="color:var(--texto-secundario); margin:4px 0 0 0; font-size:0.95rem;">
+      Sede Cachi · Pesaje inicial del camión, tara y cálculo automático de kilos netos de materia prima.
+    </p>
+  </div>
+</div>
+
+<div style="display:grid; grid-template-columns: 2fr 1.2fr; gap:28px; align-items:start;">
+  <!-- Formulario Principal -->
+  <div class="panel-contenedor" style="background:var(--fondo-superficie); border:1px solid var(--borde); border-radius:var(--radio-md); padding:28px; box-shadow:var(--sombra-sm);">
+    
+    {% if form.non_field_errors %}
+    <div class="aviso-toast error" style="margin-bottom:20px;">
+      {{ form.non_field_errors }}
+    </div>
+    {% endif %}
+
+    <form method="post" id="form-recepcion" novalidate>
+      {% csrf_token %}
+
+      <div class="form-grid-2col">
+        <!-- Productor -->
+        <div class="form-grupo span-2">
+          <label class="form-label" for="{{ form.productor.id_for_label }}">
+            Productor Registrado <span style="color:var(--rojo);">*</span>
+          </label>
+          {{ form.productor }}
+          {% if form.productor.errors %}<div class="form-error">{{ form.productor.errors }}</div>{% endif %}
+        </div>
+
+        <!-- Tipo de Materia Prima -->
+        <div class="form-grupo">
+          <label class="form-label" for="{{ form.tipo_producto.id_for_label }}">
+            Materia Prima <span style="color:var(--rojo);">*</span>
+          </label>
+          {{ form.tipo_producto }}
+          {% if form.tipo_producto.errors %}<div class="form-error">{{ form.tipo_producto.errors }}</div>{% endif %}
+        </div>
+
+        <!-- Campaña -->
+        <div class="form-grupo">
+          <label class="form-label" for="{{ form.campania.id_for_label }}">
+            Campaña Agrícola <span style="color:var(--rojo);">*</span>
+          </label>
+          {{ form.campania }}
+          {% if form.campania.errors %}<div class="form-error">{{ form.campania.errors }}</div>{% endif %}
+        </div>
+
+        <!-- Fecha de Recepción -->
+        <div class="form-grupo">
+          <label class="form-label" for="{{ form.fecha.id_for_label }}">
+            Fecha de Ingreso <span style="color:var(--rojo);">*</span>
+          </label>
+          {{ form.fecha }}
+          {% if form.fecha.errors %}<div class="form-error">{{ form.fecha.errors }}</div>{% endif %}
+        </div>
+
+        <!-- Procedencia / Finca -->
+        <div class="form-grupo">
+          <label class="form-label" for="{{ form.procedencia.id_for_label }}">
+            Procedencia / Finca <span style="color:var(--rojo);">*</span>
+          </label>
+          {{ form.procedencia }}
+          {% if form.procedencia.errors %}<div class="form-error">{{ form.procedencia.errors }}</div>{% endif %}
+        </div>
+
+        <!-- Kilos Brutos -->
+        <div class="form-grupo">
+          <label class="form-label" for="id_kilos_brutos">
+            Kilos Brutos (Vehículo + Carga) <span style="color:var(--rojo);">*</span>
+          </label>
+          {{ form.kilos_brutos }}
+          {% if form.kilos_brutos.errors %}<div class="form-error">{{ form.kilos_brutos.errors }}</div>{% endif %}
+        </div>
+
+        <!-- Tara -->
+        <div class="form-grupo">
+          <label class="form-label" for="id_tara">
+            Tara del Vehículo (kg) <span style="color:var(--rojo);">*</span>
+          </label>
+          {{ form.tara }}
+          {% if form.tara.errors %}<div class="form-error">{{ form.tara.errors }}</div>{% endif %}
+        </div>
+
+        <!-- Humedad -->
+        <div class="form-grupo span-2">
+          <label class="form-label" for="{{ form.porcentaje_humedad.id_for_label }}">
+            Porcentaje de Humedad (%) <span style="color:var(--rojo);">*</span>
+          </label>
+          {{ form.porcentaje_humedad }}
+          <small style="color:#8C8E8C; font-size:0.8rem; margin-top:4px; display:block;">
+            Medición de laboratorio (rango permitido: 0.00 % a 100.00 %).
+          </small>
+          {% if form.porcentaje_humedad.errors %}<div class="form-error">{{ form.porcentaje_humedad.errors }}</div>{% endif %}
+        </div>
+
+        <!-- Observaciones -->
+        <div class="form-grupo span-2">
+          <label class="form-label" for="{{ form.observaciones.id_for_label }}">
+            Observaciones (Opcional)
+          </label>
+          {{ form.observaciones }}
+          {% if form.observaciones.errors %}<div class="form-error">{{ form.observaciones.errors }}</div>{% endif %}
+        </div>
+      </div>
+
+      <div class="form-botones-fila" style="margin-top:24px;">
+        <a href="{% url 'acopio:recepciones_lista' %}" class="btn btn-secundario">
+          Cancelar
+        </a>
+        <button type="submit" class="btn btn-principal" id="btn-emitir-comprobante" style="padding:12px 28px; font-size:1rem;">
+          Emitir Comprobante Correlativo
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Panel Lateral: Cálculo en Tiempo Real y Contingencia -->
+  <div style="display:flex; flex-direction:column; gap:20px;">
+    <!-- Caja de Cálculo Dinámico en Vivo -->
+    <div style="background:var(--fondo-superficie); border:2px solid var(--verde-principal); border-radius:var(--radio-md); padding:24px; box-shadow:var(--sombra-sm);">
+      <h3 style="font-size:1.1rem; font-weight:700; color:var(--texto); margin-top:0; margin-bottom:14px;">
+        Cálculo de Kilos Netos
+      </h3>
+      
+      <div style="background:var(--fondo-hover); border-radius:var(--radio-sm); padding:16px; margin-bottom:0;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:0.92rem; color:var(--texto-secundario);">
+          <span>Peso Bruto:</span>
+          <strong id="live-bruto" style="color:var(--texto);">0.00 kg</strong>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:0.92rem; color:var(--texto-secundario);">
+          <span>Tara Camión:</span>
+          <strong id="live-tara" style="color:var(--texto);">0.00 kg</strong>
+        </div>
+        <hr style="border:none; border-top:1px dashed var(--borde); margin:10px 0;">
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:1rem;">
+          <span style="font-weight:700; color:var(--texto);">Kilos Netos:</span>
+          <strong id="live-neto" style="font-size:1.55rem; color:var(--verde-principal); font-weight:800;">
+            0.00 kg
+          </strong>
+        </div>
+      </div>
+
+      <!-- Alerta de validación en tiempo real -->
+      <div id="alerta-pesaje" style="display:none; padding:10px 14px; border-radius:var(--radio-sm); font-size:0.88rem; font-weight:600; margin-top:12px;"></div>
+    </div>
+
+    <!-- Contingencia Offline en Cachi -->
+    <div style="background:var(--fondo-superficie); border:1px solid var(--borde); border-radius:var(--radio-md); padding:20px; box-shadow:var(--sombra-sm);">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+        <h4 style="font-size:0.95rem; font-weight:700; margin:0; color:var(--texto);">
+          Contingencia Cachi
+        </h4>
+        <span class="pill-tag" id="badge-conexion" style="background:#EBF5E9; color:var(--verde-principal); font-size:0.75rem; font-weight:700;">
+          ONLINE
+        </span>
+      </div>
+      <p style="font-size:0.84rem; color:var(--texto-secundario); margin-bottom:12px; line-height:1.45;">
+        Si se interrumpe la conexión en la báscula de Cachi, los datos se resguardan localmente con identificador único universal (UUID) y se sincronizan al restablecer la red evitando comprobantes duplicados.
+      </p>
+      <div style="display:flex; gap:8px;">
+        <button type="button" class="btn btn-secundario" style="font-size:0.78rem; padding:6px 10px; width:100%; justify-content:center;" onclick="simularGuardadoOffline()">
+          Simular guardado local (Offline)
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Cálculo de Kilos Netos en Tiempo Real (HU-01)
+  function recalcularKilosNetos() {
+    const inputBruto = document.getElementById('id_kilos_brutos');
+    const inputTara = document.getElementById('id_tara');
+    const liveBruto = document.getElementById('live-bruto');
+    const liveTara = document.getElementById('live-tara');
+    const liveNeto = document.getElementById('live-neto');
+    const alerta = document.getElementById('alerta-pesaje');
+    const btnSubmit = document.getElementById('btn-emitir-comprobante');
+
+    const bruto = parseFloat(inputBruto.value) || 0;
+    const tara = parseFloat(inputTara.value) || 0;
+
+    liveBruto.textContent = bruto.toFixed(2) + ' kg';
+    liveTara.textContent = tara.toFixed(2) + ' kg';
+
+    if (bruto > 0 && tara >= 0) {
+      if (bruto <= tara) {
+        liveNeto.textContent = '0.00 kg';
+        liveNeto.style.color = 'var(--rojo)';
+        alerta.style.display = 'block';
+        alerta.style.backgroundColor = '#FDE8E8';
+        alerta.style.color = '#C81E1E';
+        alerta.textContent = '⚠️ Los kilos brutos deben ser mayores que la tara del vehículo.';
+        btnSubmit.disabled = true;
+      } else {
+        const neto = bruto - tara;
+        liveNeto.textContent = neto.toFixed(2) + ' kg';
+        liveNeto.style.color = 'var(--verde-principal)';
+        alerta.style.display = 'none';
+        btnSubmit.disabled = false;
+      }
+    } else {
+      liveNeto.textContent = '0.00 kg';
+      liveNeto.style.color = 'var(--verde-principal)';
+      alerta.style.display = 'none';
+      btnSubmit.disabled = false;
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const inputBruto = document.getElementById('id_kilos_brutos');
+    const inputTara = document.getElementById('id_tara');
+    if (inputBruto && inputTara) {
+      inputBruto.addEventListener('input', recalcularKilosNetos);
+      inputTara.addEventListener('input', recalcularKilosNetos);
+      recalcularKilosNetos();
+    }
+  });
+
+  // Simulación de contingencia offline (HU-07)
+  function simularGuardadoOffline() {
+    const uuid = 'loc-' + Math.random().toString(36).substring(2, 11) + '-' + Date.now();
+    const productor = document.getElementById('id_productor')?.selectedOptions[0]?.text || 'Productor';
+    const bruto = document.getElementById('id_kilos_brutos')?.value || '0';
+    const tara = document.getElementById('id_tara')?.value || '0';
+    
+    const registroLocal = {
+      uuid: uuid,
+      productor: productor,
+      bruto: bruto,
+      tara: tara,
+      fecha: new Date().toISOString(),
+      estado: 'Pendiente de sincronizar'
+    };
+
+    localStorage.setItem('contingencia_acopio_' + uuid, JSON.stringify(registroLocal));
+    document.getElementById('badge-conexion').textContent = 'OFFLINE (Almacenado)';
+    document.getElementById('badge-conexion').style.background = '#FEF3C7';
+    document.getElementById('badge-conexion').style.color = '#92400E';
+
+    alert('Contingencia Cachi:\nRegistro guardado localmente en caché con UUID: ' + uuid + '.\nSe sincronizará automáticamente al detectar conexión al servidor central sin generar duplicados.');
+  }
+</script>
+{% endblock %}
