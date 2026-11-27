@@ -6,7 +6,7 @@ Desarrollada para la cátedra **Práctica Profesional II** (Instituto Superior d
 
 ---
 
-## 🌾 Características Principales
+## Características Principales
 
 1. **Diseño Web Moderno y Adaptativo (Desktop-First)**:
    - Identidad visual oficial: colores verde calchaquí (`#3e6531`), crema (`#FAF8F3`), y naranja acento (`#E89B3C`).
@@ -46,7 +46,7 @@ Desarrollada para la cátedra **Práctica Profesional II** (Instituto Superior d
 
 ---
 
-## 🚀 Puesta en Marcha
+## Puesta en Marcha
 
 ### Opción 1: Ejecución Local Rápida (Entorno Virtual Python)
 
@@ -75,7 +75,7 @@ Abrir en el navegador: [http://localhost:8000](http://localhost:8000)
 
 ---
 
-## 🔑 Credenciales de Acceso Precargadas
+## Credenciales de Acceso Precargadas
 
 | Rol | Usuario | Contraseña | Correo Electrónico |
 | :--- | :--- | :--- | :--- |
@@ -84,10 +84,9 @@ Abrir en el navegador: [http://localhost:8000](http://localhost:8000)
 
 ---
 
-## 🧪 Verificación de Pruebas Automatizadas
+## Verificación de Pruebas Automatizadas
 
 Para ejecutar la suite completa de pruebas unitarias y de integración de Django:
 ```powershell
 python manage.py test
 ```
-*Resultado: 26 pruebas ejecutadas satisfactoriamente (OK).*
