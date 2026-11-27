@@ -7,7 +7,7 @@ from django.core.exceptions import ImproperlyConfigured
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 env_file = BASE_DIR / ".env"
-if env_file.exists():
+if not os.environ.get("DJANGO_SECRET_KEY") and env_file.exists():
     for line in env_file.read_text(encoding="utf-8").splitlines():
         line = line.strip()
         if line and not line.startswith("#") and "=" in line:
