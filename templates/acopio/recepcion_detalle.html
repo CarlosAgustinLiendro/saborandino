@@ -57,8 +57,8 @@
     <span style="font-size:1.4rem;">⚠️</span>
     <div>
       <strong style="color:#b45309; font-size:0.95rem;">COMPROBANTE RECTIFICADO (Auditoría Cachi)</strong>
-      <p style="margin:2px 0 0 0; color:#78350f; font-size:0.85rem;"><strong>Motivo de corrección:</strong> {{
-        comprobante.motivo_rectificacion }}</p>
+      <p style="margin:2px 0 0 0; color:#78350f; font-size:0.85rem;"><strong>Motivo de corrección:</strong>
+        {{ comprobante.motivo_rectificacion }}</p>
     </div>
   </div>
   {% endif %}
@@ -150,14 +150,14 @@
     <tbody>
       <tr style="border-bottom:1px solid #E8E5DA;">
         <td style="padding:12px 14px; font-weight:600;">Peso Bruto (Camión + Carga)</td>
-        <td style="padding:12px 14px; text-align:right; font-size:1.05rem; font-family:monospace;">{{
-          comprobante.kilos_brutos }} kg</td>
+        <td style="padding:12px 14px; text-align:right; font-size:1.05rem; font-family:monospace;">
+          {{ comprobante.kilos_brutos }} kg</td>
         <td style="padding:12px 14px; color:#666; font-size:0.88rem;">Báscula electrónica de plataforma Cachi</td>
       </tr>
       <tr style="border-bottom:1px solid #E8E5DA;">
         <td style="padding:12px 14px; font-weight:600;">Tara (Vehículo Vacío)</td>
-        <td style="padding:12px 14px; text-align:right; font-size:1.05rem; font-family:monospace;">{{ comprobante.tara
-          }} kg</td>
+        <td style="padding:12px 14px; text-align:right; font-size:1.05rem; font-family:monospace;">
+          {{ comprobante.tara }} kg</td>
         <td style="padding:12px 14px; color:#666; font-size:0.88rem;">Pesaje de salida del transporte</td>
       </tr>
       <tr style="background:#FAF8F3; border-bottom:2px solid #3e6531;">
@@ -171,8 +171,8 @@
       </tr>
       <tr>
         <td style="padding:12px 14px; font-weight:600;">Porcentaje de Humedad</td>
-        <td style="padding:12px 14px; text-align:right; font-size:1.05rem; font-family:monospace;">{{
-          comprobante.porcentaje_humedad }} %</td>
+        <td style="padding:12px 14px; text-align:right; font-size:1.05rem; font-family:monospace;">
+          {{ comprobante.porcentaje_humedad }} %</td>
         <td style="padding:12px 14px; color:#666; font-size:0.88rem;">Higrómetro / Muestreo de laboratorio</td>
       </tr>
     </tbody>
@@ -191,8 +191,8 @@
     <div style="text-align:center;">
       <div style="height:50px;"></div>
       <div style="border-top:1px solid #444; width:80%; margin:0 auto; padding-top:6px;">
-        <strong style="font-size:0.92rem; color:#1C2826;">{{
-          comprobante.usuario_responsable.get_full_name|default:comprobante.usuario_responsable.username }}</strong>
+        <strong style="font-size:0.92rem; color:#1C2826;">
+          {{ comprobante.usuario_responsable.get_full_name|default:comprobante.usuario_responsable.username }}</strong>
         <div style="font-size:0.8rem; color:#666;">Acopiador Responsable · Sabor Andino S.R.L.</div>
       </div>
     </div>
